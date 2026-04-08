@@ -4,10 +4,14 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>AI Detector | Детектор текстов</title>
-		<link rel="stylesheet" href="C:\Users\Администратор\Desktop\Ai_detector\static\css\style.css">
+		<link
+			rel="stylesheet"
+			href="C:\Users\Администратор\Desktop\Ai_detector\static\css\style.css"
+		/>
 		<link
 			href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
-			rel="stylesheet"/>
+			rel="stylesheet"
+		/>
 	</head>
 	<body>
 		<div class="container">
@@ -27,13 +31,12 @@
 					<div class="textarea-wrapper">
 						<label for="user_text">📝 Вставьте текст для проверки</label>
 						<textarea
-							id="user_text"
-							name="user_text"
-							rows="10"
-							placeholder="Например:&#10;&#10;Привет! Сегодня я хочу рассказать о своём любимом фильме. Мне кажется, что кино — это не просто развлечение, а способ увидеть мир глазами другого человека..."
-						>
-{{ user_text or '' }}</textarea
-						>
+                                id="user_text"
+                                name="user_text"
+                                rows="10"
+                                placeholder='📝 Пример текста для проверки:&#10;&#10;Привет! Сегодня я хочу рассказать о своём любимом фильме. Мне кажется, что кино — это не просто развлечение, а способ увидеть мир глазами другого человека. Особенно я люблю старые чёрно-белые фильмы, в них есть какая-то особая атмосфера. Например, "Огни большого города" с Чарли Чаплином. Да, там нет цвета и спецэффектов, но зато есть душа и юмор. Мой друг не понимает, как можно смотреть такое, а я считаю, что классика никогда не устареет. Кстати, недавно мы ходили в кинотеатр на новый фильм, и я поймал себя на мысли, что современное кино часто слишком громкое и быстрое. А что думаешь ты? Напиши в комментариях!'
+                                >{% if user_text %}{{ user_text }}{% endif %}
+                        </textarea>
 						<div class="char-counter">
 							<span id="charCount">0</span> символов
 							<span id="warningMessage" class="warning"></span>
