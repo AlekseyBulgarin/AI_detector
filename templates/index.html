@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Detector | Анализатор текста</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="badge">🔬 Экспериментальная модель</div>
+            <h1>🤖 Детектор <span class="gradient-text">AI-текстов</span></h1>
+            <p class="subtitle">Анализирует текст по 5 параметрам и определяет вероятность генерации нейросетью</p>
+        </div>
+
+        <!-- Основная форма -->
+        <div class="card">
+            <form method="POST" action="/check" id="detectorForm">
+                <div class="textarea-wrapper">
+                    <label for="user_text">📝 Вставьте текст для проверки</label>
+                    <textarea 
+                        id="user_text" 
+                        name="user_text" 
+                        rows="10" 
+                        placeholder="Например:&#10;&#10;Привет! Сегодня я хочу рассказать о своём любимом фильме. Мне кажется, что кино — это не просто развлечение, а способ увидеть мир глазами другого человека. Особенно я люблю старые чёрно-белые фильмы, в них есть какая-то особая атмосфера...">{{ user_text or '' }}</textarea>
+                    <div class="char-counter">
+                        <span id="charCount">0</span> символов
+                        <span id="warningMessage" class="warning"></span>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    <span class="btn-text">🔍 Проанализировать</span>
+                    <div class="spinner hidden"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Результат -->
+        {% if probability is not none %}
+        <div class="result-card" id="resultCard">
+            <div class="result-header">
+                <h3>📊 Результат анализа</h3>
+                <div class="confidence-meter">
+                    <div class="meter-label">Вероятность AI</div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" style="width: { probability }%"></div>
+                    </div>
+                    <div class="percentage">{{ probability }}%</div>
+                </div>
+            </div>
+
+            <div class="verdict {{ 'high' if probability > 65 else 'medium' if probability > 35 else 'low' }}">
+                <div class="verdict-icon">
+                    {% if probability > 65 %}
+                        🤖
+                    {% elif probability > 35 %}
+                        🤔
+                    {% else %}
+                        👤
+                    {% endif %}
+                </div>
+                <div class="verdict-text">
+                    {% if probability > 70 %}
+                        <strong>Высокая вероятность AI</strong><br>
+                        Текст очень похож на сгенерированный нейросетью. Обратите внимание на гладкость формулировок и отсутствие естественных "шероховатостей".
+                    {% elif probability > 40 %}
+                        <strong>Средняя вероятность AI</strong><br>
+                        Текст содержит признаки как человека, так и ИИ. Возможно, это смешанный или отредактированный AI-текст.
+                    {% else %}
+                        <strong>Низкая вероятность AI</strong><br>
+                        Текст похож на написанный человеком. Присутствуют естественные речевые обороты и вариативность.
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="metrics">
+                <h4>🔍 Ключевые признаки</h4>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <span class="metric-name">Длина предложений</span>
+                        <span class="metric-desc">Короткие → AI, вариативные → человек</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-name">Разнообразие лексики</span>
+                        <span class="metric-desc">Низкое → AI, высокое → человек</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-name">Стоп-слова</span>
+                        <span class="metric-desc">Мало → AI, много → человек</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-name">Знаки препинания</span>
+                        <span class="metric-desc">Мало → AI, много (—, …) → человек</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                ⚠️ Модель имеет точность ~70-80% и не является абсолютным истиной. Используйте результат как вспомогательный инструмент.
+            </div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="error-card">
+            <span class="error-icon">⚠️</span>
+            <span class="error-text">{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Проект для 9 класса | Технологии: Flask, scikit-learn, NLTK</p>
+            <p>📚 Модель обучена на 40 текстах (20 человек + 20 AI)</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
