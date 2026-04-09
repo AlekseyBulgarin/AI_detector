@@ -16,7 +16,6 @@ body {
     margin: 0 auto;
 }
 
-/* Header */
 .header {
     text-align: center;
     margin-bottom: 40px;
@@ -54,7 +53,6 @@ h1 {
     color: rgba(255,255,255,0.9);
 }
 
-/* Card */
 .card {
     background: white;
     border-radius: 24px;
@@ -106,7 +104,6 @@ textarea:focus {
     color: #f59e0b;
 }
 
-/* Button */
 .btn-primary {
     width: 100%;
     padding: 14px;
@@ -146,7 +143,6 @@ textarea:focus {
     display: none;
 }
 
-/* Result Card */
 .result-card {
     background: white;
     border-radius: 24px;
@@ -202,7 +198,6 @@ textarea:focus {
     text-align: right;
 }
 
-/* Verdict */
 .verdict {
     border-radius: 20px;
     padding: 20px;
@@ -238,7 +233,6 @@ textarea:focus {
     color: #333;
 }
 
-/* Metrics */
 .metrics {
     margin-bottom: 20px;
 }
@@ -274,7 +268,6 @@ textarea:focus {
     color: #666;
 }
 
-/* Error Card */
 .error-card {
     background: #fee2e2;
     border: 1px solid #fecaca;
@@ -297,7 +290,6 @@ textarea:focus {
     text-align: center;
 }
 
-/* Footer */
 .footer {
     text-align: center;
     margin-top: 40px;
@@ -309,7 +301,6 @@ textarea:focus {
     margin: 4px 0;
 }
 
-/* Animations */
 @keyframes fadeInDown {
     from {
         opacity: 0;
@@ -344,7 +335,6 @@ textarea:focus {
     75% { transform: translateX(5px); }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     body {
         padding: 20px 16px;
