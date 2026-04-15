@@ -47,3 +47,18 @@ if (textarea) {
 	updateCharCount()
 	textarea.dispatchEvent(new Event('input'))
 }
+
+// Очистка textarea от пробелов при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('user_text');
+    if (textarea) {
+        // Если в поле только пробелы или пустота — очищаем
+        if (!textarea.value.trim() || textarea.value.trim() === '') {
+            textarea.value = '';
+        }
+        // Обновляем счётчик символов (если он есть)
+        if (typeof updateCharCount === 'function') {
+            updateCharCount();
+        }
+    }
+});
