@@ -1,85 +1,111 @@
 import os
+
 import joblib
-import re
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-import nltk
-from nltk.corpus import stopwords
 
-nltk.download('stopwords', quiet=True)
-nltk.download('punkt', quiet=True)
+from src.features import extract_features
 
-STOP_WORDS = set(stopwords.words('russian'))
 
-def extract_features(text):
-    """Извлекает 5 признаков из текста"""
-    if not text or len(text.strip()) < 20:
-        return [0, 0, 0, 0, 0]
-    
-    sentences = re.split(r'[.!?]+', text)
-    sentences = [s for s in sentences if len(s.strip()) > 0]
-    words = re.findall(r'\w+', text.lower())
-    
-    if len(sentences) == 0 or len(words) == 0:
-        return [0, 0, 0, 0, 0]
-    
-    avg_sent_len = len(words) / len(sentences)
-    unique_ratio = len(set(words)) / len(words)
-    stopword_count = sum(1 for w in words if w in STOP_WORDS)
-    stopword_ratio = stopword_count / len(words)
-    special_punct = re.findall(r'[—–…]', text)
-    punct_ratio = len(special_punct) / len(text) if len(text) > 0 else 0
-    word_lengths = [len(w) for w in words]
-    std_word_len = np.std(word_lengths) if word_lengths else 0
-    
-    return [avg_sent_len, unique_ratio, stopword_ratio, punct_ratio, std_word_len]
+RANDOM_STATE = 42
 
-# Загрузка данных
-X, Y = [], []
 
-# Тексты людей (класс 0)
-human_path = 'data/raw/human/'
-if os.path.exists(human_path):
-    for filename in os.listdir(human_path):
-        if filename.endswith('.txt'):
-            with open(os.path.join(human_path, filename), 'r', encoding='utf-8') as f:
-                text = f.read()
-                X.append(extract_features(text))
-                Y.append(0)
-    print(f"✅ Загружено {len(os.listdir(human_path))} текстов от людей")
-else:
-    print(f"⚠️ Папка {human_path} не найдена")
+def load_texts(path, label, features, labels, seen_texts):
+    if not os.path.exists(path):
+        print(f"⚠️ Папка {path} не найдена")
+        return
 
-# Тексты ИИ (класс 1)
-ai_path = 'data/raw/ai/'
-if os.path.exists(ai_path):
-    for filename in os.listdir(ai_path):
-        if filename.endswith('.txt'):
-            with open(os.path.join(ai_path, filename), 'r', encoding='utf-8') as f:
-                text = f.read()
-                X.append(extract_features(text))
-                Y.append(1)
-    print(f"✅ Загружено {len(os.listdir(ai_path))} текстов от ИИ")
+    filenames = [filename for filename in os.listdir(path) if filename.endswith(".txt")]
+    for filename in filenames:
+        file_path = os.path.join(path, filename)
+        with open(file_path, "r", encoding="utf-8") as file:
+            text = file.read()
+            if text in seen_texts:
+                print(f"⚠️ Пропущен дубликат: {file_path}")
+                continue
+            seen_texts.add(text)
+            features.append(extract_features(text))
+            labels.append(label)
 
-if len(X) == 0:
+    print(f"✅ Обработано {len(filenames)} текстов из {path}")
+
+
+def evaluate_model(model, dataset_name, features, labels):
+    predictions = model.predict(features)
+    probabilities = model.predict_proba(features)[:, 1]
+    matrix = confusion_matrix(labels, predictions, labels=[0, 1])
+
+    metrics = {
+        "accuracy": accuracy_score(labels, predictions),
+        "precision": precision_score(labels, predictions, zero_division=0),
+        "recall": recall_score(labels, predictions, zero_division=0),
+        "f1": f1_score(labels, predictions, zero_division=0),
+        "roc_auc": roc_auc_score(labels, probabilities),
+        "confusion_matrix": matrix,
+    }
+
+    print(f"\n📊 Метрики ({dataset_name})")
+    print(f"  Accuracy:  {metrics['accuracy'] * 100:.1f}%")
+    print(f"  Precision: {metrics['precision'] * 100:.1f}%")
+    print(f"  Recall:    {metrics['recall'] * 100:.1f}%")
+    print(f"  F1-score:  {metrics['f1'] * 100:.1f}%")
+    print(f"  ROC-AUC:   {metrics['roc_auc']:.3f}")
+    print("  Confusion matrix [human, AI]:")
+    print(matrix)
+    return metrics
+
+
+X, y = [], []
+seen_texts = set()
+load_texts("data/raw/human", 0, X, y, seen_texts)
+load_texts("data/raw/ai", 1, X, y, seen_texts)
+
+if not X:
     print("❌ Нет данных для обучения! Положи тексты в папки data/raw/human/ и data/raw/ai/")
-    exit()
+    raise SystemExit(1)
 
-# Обучение модели
 X = np.array(X)
-Y = np.array(Y)
+y = np.array(y)
 
-model = LogisticRegression()
-model.fit(X, Y)
+if len(np.unique(y)) < 2:
+    print("❌ Для обучения нужны примеры обоих классов")
+    raise SystemExit(1)
 
-# Оценка точности
-y_pred = model.predict(X)
-accuracy = accuracy_score(Y, y_pred)
-print(f"📊 Точность на обучающей выборке: {accuracy * 100:.1f}%")
+# Keep the test set untouched until the final evaluation.
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X,
+    y,
+    test_size=0.4,
+    random_state=RANDOM_STATE,
+    stratify=y,
+)
+X_validation, X_test, y_validation, y_test = train_test_split(
+    X_temp,
+    y_temp,
+    test_size=0.5,
+    random_state=RANDOM_STATE,
+    stratify=y_temp,
+)
 
-# Сохранение модели
-os.makedirs('models', exist_ok=True)
-joblib.dump(model, 'models/model.pkl')
+model = LogisticRegression(random_state=RANDOM_STATE)
+model.fit(X_train, y_train)
+
+evaluate_model(model, "validation", X_validation, y_validation)
+evaluate_model(model, "test", X_test, y_test)
+print(
+    f"\nℹ️ Размеры выборок: train={len(y_train)}, "
+    f"validation={len(y_validation)}, test={len(y_test)}"
+)
+
+os.makedirs("models", exist_ok=True)
+joblib.dump(model, "models/model.pkl")
 print("✅ Модель сохранена в models/model.pkl")
