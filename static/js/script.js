@@ -1,92 +1,114 @@
-// Подсчёт символов в реальном времени
 const textarea = document.getElementById('user_text')
 const charCount = document.getElementById('charCount')
+const wordCount = document.getElementById('wordCount')
 const warningMessage = document.getElementById('warningMessage')
 const form = document.getElementById('detectorForm')
 const submitBtn = document.getElementById('submitBtn')
-const btnText = submitBtn?.querySelector('.btn-text')
-const spinner = submitBtn?.querySelector('.spinner')
 
-// Обновление счётчика символов
-function updateCharCount() {
-	if (!textarea || !charCount) return
+function updateTextStats() {
+	if (!textarea) return
 
-	const length = textarea.value.length
-	charCount.textContent = length
+	const text = textarea.value
+	const characters = text.length
+	const words = text.trim() ? text.trim().split(/\s+/).length : 0
+	if (charCount) charCount.textContent = characters
+	if (wordCount) wordCount.textContent = words
 
-	if (length > 0 && length < 20) {
-		warningMessage.textContent = '⚠️ Минимум 20 символов для анализа'
-		warningMessage.style.color = '#f59e0b'
-	} else if (length >= 20) {
-		warningMessage.textContent = '✅ Достаточно для анализа'
-		warningMessage.style.color = '#10b981'
+	if (!warningMessage) return
+	if (characters > 0 && characters < 20) {
+		warningMessage.textContent = 'Добавьте ещё немного текста для точного анализа.'
+		warningMessage.className = 'input-message is-warning'
+	} else if (characters >= 20) {
+		warningMessage.textContent = ''
+		warningMessage.className = 'input-message'
 	} else {
 		warningMessage.textContent = ''
+		warningMessage.className = 'input-message'
 	}
 }
 
-// Показ загрузки при отправке
-if (form) {
-	form.addEventListener('submit', function () {
-		if (submitBtn) {
-			if (btnText) btnText.textContent = 'Анализируем...'
-			if (spinner) spinner.classList.remove('hidden')
-			submitBtn.disabled = true
-		}
-	})
+function setLoading(isLoading) {
+	if (!submitBtn) return
+	submitBtn.disabled = isLoading
+	submitBtn.classList.toggle('is-loading', isLoading)
 }
 
-// Автоматическое расширение textarea при вводе
+function animateScore() {
+	const resultCard = document.getElementById('resultCard')
+	const score = document.getElementById('animatedScore')
+	const progress = document.getElementById('progressFill')
+	if (!resultCard || !score || !progress) return
+
+	const target = Math.max(0, Math.min(100, Number(resultCard.dataset.probability) || 0))
+	progress.style.setProperty('--score', `${target / 100}`)
+	progress.classList.add('is-animated')
+
+	const startedAt = performance.now()
+	const duration = 900
+	function tick(now) {
+		const progressRatio = Math.min((now - startedAt) / duration, 1)
+		const eased = 1 - Math.pow(1 - progressRatio, 3)
+		score.textContent = (target * eased).toFixed(1)
+		if (progressRatio < 1) window.requestAnimationFrame(tick)
+	}
+	window.requestAnimationFrame(tick)
+}
+
+function initializeIcons() {
+	if (window.lucide && typeof window.lucide.createIcons === 'function') {
+		window.lucide.createIcons()
+	}
+}
+
 if (textarea) {
-	textarea.addEventListener('input', function () {
-		this.style.height = 'auto'
-		this.style.height = Math.min(this.scrollHeight, 300) + 'px'
-		updateCharCount()
-	})
-
-	updateCharCount()
-	textarea.dispatchEvent(new Event('input'))
+	textarea.addEventListener('input', updateTextStats)
+	updateTextStats()
 }
 
-// Очистка textarea от пробелов при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    const textarea = document.getElementById('user_text');
-    if (textarea) {
-        // Если в поле только пробелы или пустота — очищаем
-        if (!textarea.value.trim() || textarea.value.trim() === '') {
-            textarea.value = '';
-        }
-        // Обновляем счётчик символов (если он есть)
-        if (typeof updateCharCount === 'function') {
-            updateCharCount();
-        }
-    }
+if (form) {
+	form.addEventListener('submit', function (event) {
+		if (!textarea || textarea.value.trim().length < 20) {
+			event.preventDefault()
+			updateTextStats()
+			textarea?.focus()
+			return
+		}
+		setLoading(true)
+	})
+}
 
-    const feedback = document.querySelector('.feedback');
-    if (feedback) {
-        const status = feedback.querySelector('.feedback-status');
-        feedback.querySelectorAll('.feedback-btn').forEach(function(button) {
-            button.addEventListener('click', async function() {
-                button.disabled = true;
-                try {
-                    const response = await fetch('/api/feedback', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            analysis_id: feedback.dataset.analysisId,
-                            label: button.dataset.label
-                        })
-                    });
-                    if (!response.ok) throw new Error('feedback request failed');
-                    feedback.querySelectorAll('.feedback-btn').forEach(function(item) {
-                        item.disabled = true;
-                    });
-                    status.textContent = 'Спасибо! Ответ сохранён для проверки.';
-                } catch (error) {
-                    button.disabled = false;
-                    status.textContent = 'Не удалось сохранить ответ. Попробуйте ещё раз.';
-                }
-            });
-        });
-    }
-});
+document.addEventListener('keydown', function (event) {
+	if ((event.metaKey || event.ctrlKey) && event.key === 'Enter' && form && textarea) {
+		event.preventDefault()
+		if (textarea.value.trim().length >= 20) form.requestSubmit()
+	}
+})
+
+document.addEventListener('DOMContentLoaded', function () {
+	initializeIcons()
+	animateScore()
+
+	const feedback = document.querySelector('.feedback')
+	if (!feedback) return
+
+	const status = feedback.querySelector('.feedback-status')
+	feedback.querySelectorAll('.feedback-btn').forEach(function (button) {
+		button.addEventListener('click', async function () {
+			feedback.querySelectorAll('.feedback-btn').forEach((item) => { item.disabled = true })
+			button.classList.add('is-selected')
+			try {
+				const response = await fetch('/api/feedback', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ analysis_id: feedback.dataset.analysisId, label: button.dataset.label })
+				})
+				if (!response.ok) throw new Error('feedback request failed')
+				if (status) status.textContent = 'Спасибо — ответ сохранён для проверки.'
+			} catch (error) {
+				feedback.querySelectorAll('.feedback-btn').forEach((item) => { item.disabled = false })
+				button.classList.remove('is-selected')
+				if (status) status.textContent = 'Не удалось сохранить ответ. Попробуйте ещё раз.'
+			}
+		})
+	})
+})

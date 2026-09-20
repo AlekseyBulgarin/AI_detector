@@ -3,144 +3,145 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>AI Detector | Детектор текстов</title>
+		<meta name="theme-color" content="#0b1020" />
+		<title>AI Detector | Проверка текста</title>
+		<link rel="icon" href="data:," />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			rel="stylesheet"
-			href="{{ url_for('static', filename='css/style.css') }}"
-		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+			href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
 			rel="stylesheet"
 		/>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 	</head>
 	<body>
-		<div class="container">
-			<!-- Шапка -->
-			<div class="header">
-				<div class="badge">🔬 Экспериментальная модель</div>
-				<h1>🤖 Детектор <span class="gradient-text">AI-текстов</span></h1>
-				<p class="subtitle">
-					Анализирует текст по 5 параметрам и определяет вероятность генерации
-					нейросетью
-				</p>
-			</div>
-
-			<!-- Форма ввода -->
-			<div class="card">
-				<form method="POST" action="/check" id="detectorForm">
-					<div class="textarea-wrapper">
-						<label for="user_text">📝 Вставьте текст для проверки</label>
-						<textarea
-							id="user_text"
-							name="user_text"
-							rows="10"
-							placeholder='📝 Пример текста для проверки:&#10;&#10;Привет! Сегодня я хочу рассказать о своём любимом фильме. Мне кажется, что кино — это не просто развлечение, а способ увидеть мир глазами другого человека. Особенно я люблю старые чёрно-белые фильмы, в них есть какая-то особая атмосфера. Например, "Огни большого города" с Чарли Чаплином. Да, там нет цвета и спецэффектов, но зато есть душа и юмор. Мой друг не понимает, как можно смотреть такое, а я считаю, что классика никогда не устареет. Кстати, недавно мы ходили в кинотеатр на новый фильм, и я поймал себя на мысли, что современное кино часто слишком громкое и быстрое. А что думаешь ты? Напиши в комментариях!'
-						>
-{% if user_text %}{{ user_text }}{% endif %}
-                        </textarea
-						>
-						<div class="char-counter">
-							<span id="charCount">0</span> символов
-							<span id="warningMessage" class="warning"></span>
-						</div>
-					</div>
-					<button type="submit" id="submitBtn" class="btn-primary">
-						<span class="btn-text">🔍 Проанализировать</span>
-						<div class="spinner hidden"></div>
-					</button>
-				</form>
-			</div>
-
-			<!-- Результат анализа -->
-			{% if probability is not none %}
-			<div class="result-card" id="resultCard">
-				<div class="result-header">
-					<h3>📊 Результат анализа</h3>
-					<div class="confidence-meter">
-						<div class="meter-label">Вероятность AI</div>
-						<div class="meter-bar">
-							<div class="meter-fill"></div>
-						</div>
-						<div class="percentage">{{ probability }}%</div>
-					</div>
+		<div class="app-shell">
+			<header class="topbar" aria-label="Навигация приложения">
+				<a class="brand" href="{{ url_for('index') }}" aria-label="AI Detector, на главную">
+					<span class="brand-mark" aria-hidden="true"><i data-lucide="scan-search"></i></span>
+					<span class="brand-name">AI Detector</span>
+				</a>
+				<div class="topbar-meta">
+					<span class="status-dot" aria-hidden="true"></span>
+					<span>Экспериментальная модель</span>
 				</div>
+			</header>
 
-				<div
-					class="verdict {{ 'high' if probability > 65 else 'medium' if probability > 35 else 'low' }}"
-				>
-					<div class="verdict-icon">
-						{% if probability > 65 %}🤖{% elif probability > 35 %}🤔{% else
-						%}👤{% endif %}
-					</div>
-					<div class="verdict-text">
-						{% if probability > 70 %}
-						<strong>Высокая вероятность AI</strong><br />
-						Текст очень похож на сгенерированный нейросетью. {% elif probability
-						> 40 %}
-						<strong>Средняя вероятность AI</strong><br />
-						Текст содержит признаки как человека, так и ИИ. {% else %}
-						<strong>Низкая вероятность AI</strong><br />
-						Текст похож на написанный человеком. {% endif %}
-					</div>
-				</div>
+			<main class="main-content">
+				<section class="hero" aria-labelledby="page-title">
+					<div class="eyebrow"><span class="eyebrow-line"></span>Инструмент для преподавателей</div>
+					<h1 id="page-title">Понимайте текст <br /><span>глубже.</span></h1>
+					<p class="hero-copy">
+						Анализируйте стилистические сигналы текста и получайте понятный ориентир о его происхождении.
+					</p>
+				</section>
 
-				<div class="metrics">
-					<h4>🔍 Как это работает</h4>
-					<div class="metrics-grid">
-						<div class="metric">
-							<span class="metric-name">📏 Длина предложений</span>
-							<span class="metric-desc"
-								>У ИИ предложения более однообразны</span
-							>
+				<section class="workspace" aria-labelledby="analyzer-title">
+					<div class="workspace-heading">
+						<div>
+							<p class="section-kicker">01 / Анализ</p>
+							<h2 id="analyzer-title">Добавьте текст для проверки</h2>
 						</div>
-						<div class="metric">
-							<span class="metric-name">📖 Разнообразие лексики</span>
-							<span class="metric-desc"
-								>Человек использует больше уникальных слов</span
-							>
+						<span class="shortcut-hint"><kbd>⌘</kbd><kbd>↵</kbd> Запустить</span>
+					</div>
+
+					<form method="POST" action="/check" id="detectorForm" class="analyzer-form">
+						<label class="sr-only" for="user_text">Текст для анализа</label>
+						<div class="editor-shell">
+							<div class="editor-toolbar" aria-hidden="true">
+								<span class="toolbar-label"><i data-lucide="file-text"></i> Новый анализ</span>
+								<span class="toolbar-type">RU / TEXT</span>
+							</div>
+							<textarea
+								id="user_text"
+								name="user_text"
+								rows="11"
+								maxlength="30000"
+								aria-describedby="editor-help charCount warningMessage"
+								placeholder="Вставьте эссе, ответ ученика или фрагмент текста..."
+							>{% if user_text %}{{ user_text }}{% endif %}</textarea>
+							<div class="editor-footer">
+								<span id="editor-help" class="editor-help">Минимум 20 символов для анализа</span>
+								<span class="editor-stats"><span id="wordCount">0</span> слов <span class="stats-divider">·</span> <span id="charCount">0</span> знаков</span>
+							</div>
 						</div>
-						<div class="metric">
-							<span class="metric-name">🗣️ Стоп-слова</span>
-							<span class="metric-desc"
-								>У людей больше слов-связок ("типа", "короче")</span
-							>
+						<p id="warningMessage" class="input-message" aria-live="polite"></p>
+						<button type="submit" id="submitBtn" class="analyze-button">
+							<span class="btn-content"><i data-lucide="sparkles"></i><span class="btn-text">Проанализировать текст</span></span>
+							<span class="btn-loading" aria-hidden="true"><span class="spinner"></span> Анализируем</span>
+							<i class="button-arrow" data-lucide="arrow-up-right" aria-hidden="true"></i>
+						</button>
+					</form>
+				</section>
+
+				{% if probability is not none %}
+				<section class="result-card" id="resultCard" data-probability="{{ probability }}" aria-labelledby="result-title">
+					<div class="result-topline">
+						<div>
+							<p class="section-kicker">02 / Вывод модели</p>
+							<h2 id="result-title">Результат анализа</h2>
 						</div>
-						<div class="metric">
-							<span class="metric-name">🔧 Знаки препинания</span>
-							<span class="metric-desc">Люди чаще используют —, …, !?</span>
+						<span class="result-badge"><i data-lucide="shield-check"></i> Готово</span>
+					</div>
+
+					<div class="score-layout">
+						<div class="score-copy">
+							<span class="score-label">Вероятность AI</span>
+							<div class="score-value"><span id="animatedScore" aria-live="polite">0</span><span class="score-unit">%</span></div>
+							<p class="score-note">Оценка на основе языковых и структурных признаков текста.</p>
+						</div>
+						<div class="score-visual" aria-label="Индикатор вероятности AI">
+							<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+							<div class="progress-scale"><span>Человек</span><span>AI</span></div>
 						</div>
 					</div>
-				</div>
 
-				<div class="disclaimer">
-					⚠️ Модель имеет точность ~70-80% и не является абсолютной истиной.
-				</div>
-
-				{% if analysis_id %}
-				<div class="feedback" data-analysis-id="{{ analysis_id }}">
-					<h4>💬 Кем был написан этот текст?</h4>
-					<div class="feedback-buttons">
-						<button type="button" class="feedback-btn" data-label="human">Человеком</button>
-						<button type="button" class="feedback-btn" data-label="ai">ИИ</button>
-						<button type="button" class="feedback-btn" data-label="unsure">Не уверен(а)</button>
+					<div class="verdict {{ 'high' if probability > 65 else 'medium' if probability > 35 else 'low' }}">
+						<div class="verdict-icon" aria-hidden="true">
+							{% if probability > 65 %}<i data-lucide="bot"></i>{% elif probability > 35 %}<i data-lucide="circle-help"></i>{% else %}<i data-lucide="user-round"></i>{% endif %}
+						</div>
+						<div class="verdict-copy">
+							{% if probability > 70 %}
+							<strong>Высокая вероятность AI</strong><span>Текст заметно похож на сгенерированный нейросетью.</span>
+							{% elif probability > 40 %}
+							<strong>Смешанные сигналы</strong><span>В тексте есть признаки как человека, так и AI.</span>
+							{% else %}
+							<strong>Человеческий стиль</strong><span>Текст больше похож на написанный человеком.</span>
+							{% endif %}
+						</div>
 					</div>
-					<p class="feedback-status" aria-live="polite"></p>
-				</div>
+
+					<div class="feature-section">
+						<div class="feature-heading"><p class="section-kicker">Сигналы текста</p><span>Что учитывает модель</span></div>
+						<div class="feature-grid">
+							<div class="feature-item"><span class="feature-icon"><i data-lucide="align-center"></i></span><div><strong>Структура предложений</strong><span>Ритм и вариативность длины фраз</span></div></div>
+							<div class="feature-item"><span class="feature-icon"><i data-lucide="book-open"></i></span><div><strong>Разнообразие слов</strong><span>Уникальность и плотность лексики</span></div></div>
+							<div class="feature-item"><span class="feature-icon"><i data-lucide="case-sensitive"></i></span><div><strong>Стоп-слова</strong><span>Связность и частотные слова</span></div></div>
+							<div class="feature-item"><span class="feature-icon"><i data-lucide="between-horizontal-start"></i></span><div><strong>Пунктуация</strong><span>Особенности знаков и оформления</span></div></div>
+						</div>
+					</div>
+
+					<div class="result-disclaimer"><i data-lucide="info"></i><span>Результат является ориентиром, а не доказательством авторства. Всегда учитывайте контекст и работу ученика.</span></div>
+
+					{% if analysis_id %}
+					<div class="feedback" data-analysis-id="{{ analysis_id }}">
+						<div class="feedback-copy"><span class="feedback-icon"><i data-lucide="message-circle-question"></i></span><div><strong>Помогите улучшить модель</strong><span>Как вы оцениваете происхождение этого текста?</span></div></div>
+						<div class="feedback-actions"><button type="button" class="feedback-btn" data-label="human">Человек</button><button type="button" class="feedback-btn" data-label="ai">AI</button><button type="button" class="feedback-btn" data-label="unsure">Не уверен</button></div>
+						<p class="feedback-status" aria-live="polite"></p>
+					</div>
+					{% endif %}
+				</section>
 				{% endif %}
-			</div>
-			{% endif %} {% if error %}
-			<div class="error-card">
-				<span class="error-icon">⚠️</span>
-				<span class="error-text">{{ error }}</span>
-			</div>
-			{% endif %}
 
-			<!-- Подвал -->
-			<div class="footer">
-				<p>Проект для 9 класса | Flask + scikit-learn + NLTK</p>
-			</div>
+				{% if error %}
+				<div class="error-card" role="alert"><i data-lucide="alert-triangle"></i><span>{{ error }}</span></div>
+				{% endif %}
+			</main>
+
+			<footer class="site-footer"><span>AI Detector</span><span>Flask · scikit-learn · NLTK</span><span>Проект для 10 класса</span></footer>
 		</div>
 
+		<script src="https://unpkg.com/lucide@latest"></script>
 		<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 	</body>
 </html>
