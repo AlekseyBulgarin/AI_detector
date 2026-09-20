@@ -115,6 +115,18 @@
 				<div class="disclaimer">
 					⚠️ Модель имеет точность ~70-80% и не является абсолютной истиной.
 				</div>
+
+				{% if analysis_id %}
+				<div class="feedback" data-analysis-id="{{ analysis_id }}">
+					<h4>💬 Кем был написан этот текст?</h4>
+					<div class="feedback-buttons">
+						<button type="button" class="feedback-btn" data-label="human">Человеком</button>
+						<button type="button" class="feedback-btn" data-label="ai">ИИ</button>
+						<button type="button" class="feedback-btn" data-label="unsure">Не уверен(а)</button>
+					</div>
+					<p class="feedback-status" aria-live="polite"></p>
+				</div>
+				{% endif %}
 			</div>
 			{% endif %} {% if error %}
 			<div class="error-card">

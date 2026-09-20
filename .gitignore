@@ -9,3 +9,4 @@ data/raw/*.txt
 !data/raw/.gitkeep
 .DS_Store
 *.log
+data/feedback.db

@@ -1,111 +1,130 @@
-import os
+import json
+from datetime import datetime, timezone
+from pathlib import Path
 
 import joblib
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    accuracy_score,
-    confusion_matrix,
-    f1_score,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 
-from src.features import extract_features
+from src.ml_pipeline import build_models, evaluate_model
+from tools.dataset_loader import load_dataset
 
 
 RANDOM_STATE = 42
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 
-def load_texts(path, label, features, labels, seen_texts):
-    if not os.path.exists(path):
-        print(f"⚠️ Папка {path} не найдена")
-        return
-
-    filenames = [filename for filename in os.listdir(path) if filename.endswith(".txt")]
-    for filename in filenames:
-        file_path = os.path.join(path, filename)
-        with open(file_path, "r", encoding="utf-8") as file:
-            text = file.read()
-            if text in seen_texts:
-                print(f"⚠️ Пропущен дубликат: {file_path}")
-                continue
-            seen_texts.add(text)
-            features.append(extract_features(text))
-            labels.append(label)
-
-    print(f"✅ Обработано {len(filenames)} текстов из {path}")
-
-
-def evaluate_model(model, dataset_name, features, labels):
-    predictions = model.predict(features)
-    probabilities = model.predict_proba(features)[:, 1]
-    matrix = confusion_matrix(labels, predictions, labels=[0, 1])
-
-    metrics = {
-        "accuracy": accuracy_score(labels, predictions),
-        "precision": precision_score(labels, predictions, zero_division=0),
-        "recall": recall_score(labels, predictions, zero_division=0),
-        "f1": f1_score(labels, predictions, zero_division=0),
-        "roc_auc": roc_auc_score(labels, probabilities),
-        "confusion_matrix": matrix,
+def cross_validate_model(model, texts, labels):
+    folds = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
+    scores = cross_validate(
+        model,
+        texts,
+        labels,
+        cv=folds,
+        scoring=("accuracy", "precision", "recall", "f1", "roc_auc"),
+        error_score="raise",
+    )
+    return {
+        metric: {
+            "mean": float(np.mean(scores[f"test_{metric}"])),
+            "std": float(np.std(scores[f"test_{metric}"])),
+        }
+        for metric in ("accuracy", "precision", "recall", "f1", "roc_auc")
     }
 
-    print(f"\n📊 Метрики ({dataset_name})")
-    print(f"  Accuracy:  {metrics['accuracy'] * 100:.1f}%")
-    print(f"  Precision: {metrics['precision'] * 100:.1f}%")
-    print(f"  Recall:    {metrics['recall'] * 100:.1f}%")
-    print(f"  F1-score:  {metrics['f1'] * 100:.1f}%")
-    print(f"  ROC-AUC:   {metrics['roc_auc']:.3f}")
-    print("  Confusion matrix [human, AI]:")
-    print(matrix)
-    return metrics
+
+def format_metrics(metrics):
+    matrix = metrics["confusion_matrix"]
+    return (
+        f"Accuracy: {metrics['accuracy']:.3f}; "
+        f"Precision: {metrics['precision']:.3f}; "
+        f"Recall: {metrics['recall']:.3f}; "
+        f"F1: {metrics['f1']:.3f}; "
+        f"ROC-AUC: {metrics['roc_auc']:.3f}; "
+        f"Confusion matrix: {matrix}"
+    )
 
 
-X, y = [], []
-seen_texts = set()
-load_texts("data/raw/human", 0, X, y, seen_texts)
-load_texts("data/raw/ai", 1, X, y, seen_texts)
+def write_report(results, output_path):
+    lines = [
+        "# Model Comparison",
+        "",
+        "The final test set was held out before model fitting. Cross-validation was run only on the training portion.",
+        "",
+        "| Model | Accuracy | Precision | Recall | F1 | ROC-AUC | Confusion matrix |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | --- |",
+    ]
+    for name, result in results.items():
+        metrics = result["test_metrics"]
+        lines.append(
+            f"| {name} | {metrics['accuracy']:.3f} | {metrics['precision']:.3f} | "
+            f"{metrics['recall']:.3f} | {metrics['f1']:.3f} | {metrics['roc_auc']:.3f} | "
+            f"`{metrics['confusion_matrix']}` |"
+        )
+    lines.extend(["", "## Cross-validation", ""])
+    for name, result in results.items():
+        lines.append(f"### {name}")
+        for metric, values in result["cross_validation"].items():
+            lines.append(f"- {metric}: {values['mean']:.3f} +/- {values['std']:.3f}")
+        lines.append("")
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(output_path).write_text("\n".join(lines), encoding="utf-8")
 
-if not X:
-    print("❌ Нет данных для обучения! Положи тексты в папки data/raw/human/ и data/raw/ai/")
-    raise SystemExit(1)
 
-X = np.array(X)
-y = np.array(y)
+def main():
+    records = load_dataset(PROJECT_ROOT / "data" / "raw")
+    texts = np.array([record["text"] for record in records], dtype=object)
+    labels = np.array([record["label_id"] for record in records])
 
-if len(np.unique(y)) < 2:
-    print("❌ Для обучения нужны примеры обоих классов")
-    raise SystemExit(1)
+    train_texts, test_texts, train_labels, test_labels = train_test_split(
+        texts,
+        labels,
+        test_size=0.2,
+        random_state=RANDOM_STATE,
+        stratify=labels,
+    )
 
-# Keep the test set untouched until the final evaluation.
-X_train, X_temp, y_train, y_temp = train_test_split(
-    X,
-    y,
-    test_size=0.4,
-    random_state=RANDOM_STATE,
-    stratify=y,
-)
-X_validation, X_test, y_validation, y_test = train_test_split(
-    X_temp,
-    y_temp,
-    test_size=0.5,
-    random_state=RANDOM_STATE,
-    stratify=y_temp,
-)
+    results = {}
+    fitted_models = {}
+    for name, model in build_models().items():
+        cross_validation = cross_validate_model(model, train_texts, train_labels)
+        model.fit(train_texts, train_labels)
+        test_metrics = evaluate_model(model, test_texts, test_labels)
+        results[name] = {
+            "test_metrics": test_metrics,
+            "cross_validation": cross_validation,
+        }
+        fitted_models[name] = model
+        print(f"{name}: {format_metrics(test_metrics)}")
 
-model = LogisticRegression(random_state=RANDOM_STATE)
-model.fit(X_train, y_train)
+    best_name = max(
+        results,
+        key=lambda name: (
+            results[name]["cross_validation"]["f1"]["mean"],
+            results[name]["cross_validation"]["roc_auc"]["mean"],
+        ),
+    )
+    model_path = PROJECT_ROOT / "models" / "model.pkl"
+    metadata_path = PROJECT_ROOT / "models" / "metadata.json"
+    model_path.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(fitted_models[best_name], model_path)
 
-evaluate_model(model, "validation", X_validation, y_validation)
-evaluate_model(model, "test", X_test, y_test)
-print(
-    f"\nℹ️ Размеры выборок: train={len(y_train)}, "
-    f"validation={len(y_validation)}, test={len(y_test)}"
-)
+    metadata = {
+        "model_version": "phase2-v1",
+        "selected_model": best_name,
+        "dataset_size": len(records),
+        "train_size": len(train_labels),
+        "test_size": len(test_labels),
+        "features_version": "linguistic-v1+tfidf-v1",
+        "training_date": datetime.now(timezone.utc).isoformat(),
+        "random_state": RANDOM_STATE,
+        "metrics": results,
+    }
+    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    write_report(results, PROJECT_ROOT / "reports" / "model_comparison.md")
+    print(f"Selected model: {best_name}")
+    print(f"Saved model: {model_path}")
 
-os.makedirs("models", exist_ok=True)
-joblib.dump(model, "models/model.pkl")
-print("✅ Модель сохранена в models/model.pkl")
+
+if __name__ == "__main__":
+    main()

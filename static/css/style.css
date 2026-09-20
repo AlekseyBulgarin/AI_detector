@@ -290,6 +290,50 @@ textarea:focus {
     text-align: center;
 }
 
+.feedback {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.feedback h4 {
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.feedback-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.feedback-btn {
+    padding: 8px 12px;
+    border: 1px solid #d7d9e0;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    cursor: pointer;
+}
+
+.feedback-btn:hover:not(:disabled) {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.feedback-btn:disabled {
+    cursor: default;
+    opacity: 0.65;
+}
+
+.feedback-status {
+    min-height: 18px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #666;
+}
+
 .footer {
     text-align: center;
     margin-top: 40px;

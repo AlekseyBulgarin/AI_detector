@@ -1,0 +1,102 @@
+{
+  "total_samples": 38,
+  "samples_per_class": {
+    "human": 19,
+    "ai": 19
+  },
+  "statistics": {
+    "characters": {
+      "count": 38,
+      "min": 66,
+      "max": 497,
+      "mean": 320.08,
+      "median": 400.0
+    },
+    "words": {
+      "count": 38,
+      "min": 8,
+      "max": 83,
+      "mean": 50.11,
+      "median": 58.5
+    },
+    "sentences": {
+      "count": 38,
+      "min": 1,
+      "max": 12,
+      "mean": 6.39,
+      "median": 7.0
+    },
+    "by_class": {
+      "human": {
+        "characters": {
+          "count": 19,
+          "min": 66,
+          "max": 497,
+          "mean": 208.53,
+          "median": 215
+        },
+        "words": {
+          "count": 19,
+          "min": 8,
+          "max": 73,
+          "mean": 31,
+          "median": 33
+        },
+        "sentences": {
+          "count": 19,
+          "min": 1,
+          "max": 6,
+          "mean": 3.11,
+          "median": 3
+        }
+      },
+      "ai": {
+        "characters": {
+          "count": 19,
+          "min": 392,
+          "max": 474,
+          "mean": 431.63,
+          "median": 434
+        },
+        "words": {
+          "count": 19,
+          "min": 56,
+          "max": 83,
+          "mean": 69.21,
+          "median": 69
+        },
+        "sentences": {
+          "count": 19,
+          "min": 8,
+          "max": 12,
+          "mean": 9.68,
+          "median": 10
+        }
+      }
+    }
+  },
+  "duplicates": {
+    "exact": [
+      [
+        "data\\raw\\human\\12.txt",
+        "data\\raw\\human\\19.txt"
+      ],
+      [
+        "data\\raw\\human\\15.txt",
+        "data\\raw\\human\\20.txt"
+      ]
+    ],
+    "normalized": [
+      [
+        "data\\raw\\human\\12.txt",
+        "data\\raw\\human\\17.txt",
+        "data\\raw\\human\\19.txt"
+      ],
+      [
+        "data\\raw\\human\\15.txt",
+        "data\\raw\\human\\20.txt"
+      ]
+    ]
+  },
+  "validation_errors": []
+}

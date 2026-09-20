@@ -61,4 +61,32 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCharCount();
         }
     }
+
+    const feedback = document.querySelector('.feedback');
+    if (feedback) {
+        const status = feedback.querySelector('.feedback-status');
+        feedback.querySelectorAll('.feedback-btn').forEach(function(button) {
+            button.addEventListener('click', async function() {
+                button.disabled = true;
+                try {
+                    const response = await fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            analysis_id: feedback.dataset.analysisId,
+                            label: button.dataset.label
+                        })
+                    });
+                    if (!response.ok) throw new Error('feedback request failed');
+                    feedback.querySelectorAll('.feedback-btn').forEach(function(item) {
+                        item.disabled = true;
+                    });
+                    status.textContent = 'Спасибо! Ответ сохранён для проверки.';
+                } catch (error) {
+                    button.disabled = false;
+                    status.textContent = 'Не удалось сохранить ответ. Попробуйте ещё раз.';
+                }
+            });
+        });
+    }
 });
