@@ -9,3 +9,11 @@
 - Added SQLite analysis and pending feedback storage.
 - Added teacher feedback controls to the result view.
 - Added dataset, feature, and API tests.
+
+## Render Deployment Preparation
+
+- Added Render Blueprint configuration and Python runtime declarations.
+- Deduplicated the Gunicorn dependency pin.
+- Added model metadata compatibility logging and safe load failures.
+- Added HTTP 400/503 handling for invalid requests and unavailable predictions.
+- Documented SQLite persistence limitations and future `DATABASE_URL` migration.

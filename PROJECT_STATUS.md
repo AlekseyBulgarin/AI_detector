@@ -22,3 +22,11 @@ Phase 2 is implemented locally.
 ## Next Work
 
 Expand and rebalance the dataset before making claims about accuracy or adding transformer models.
+
+## Deployment Status
+
+- Render configuration is present in `render.yaml`.
+- Python 3.11 is declared in `runtime.txt` and `.python-version`.
+- Gunicorn is the production start command.
+- Model loading and API failure handling are hardened.
+- SQLite feedback remains ephemeral on Render until a managed database is connected.

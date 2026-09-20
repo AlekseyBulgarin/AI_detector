@@ -66,6 +66,20 @@
 5. Открыть в браузере
    http://127.0.0.1:5000
 
+## Deploy to Render
+
+The repository includes `render.yaml` with:
+
+```text
+Build: pip install -r requirements.txt
+Start: gunicorn app:app
+```
+
+The trained artifact `models/model.pkl` must be committed to the repository. The
+current feedback database uses SQLite at `data/feedback.db`; Render's default
+filesystem is ephemeral, so production feedback should later be migrated to a
+managed database through `DATABASE_URL`.
+
 
 
 ## Автор

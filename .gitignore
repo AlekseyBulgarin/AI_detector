@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pkl
+!models/model.pkl
 .env
 venv/
 .venv/
@@ -10,3 +11,4 @@ data/raw/*.txt
 .DS_Store
 *.log
 data/feedback.db
+.playwright-mcp/

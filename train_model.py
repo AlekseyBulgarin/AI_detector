@@ -4,6 +4,7 @@ from pathlib import Path
 
 import joblib
 import numpy as np
+import sklearn
 from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 
 from src.ml_pipeline import build_models, evaluate_model
@@ -116,6 +117,7 @@ def main():
         "train_size": len(train_labels),
         "test_size": len(test_labels),
         "features_version": "linguistic-v1+tfidf-v1",
+        "sklearn_version": sklearn.__version__,
         "training_date": datetime.now(timezone.utc).isoformat(),
         "random_state": RANDOM_STATE,
         "metrics": results,
