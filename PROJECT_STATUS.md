@@ -10,6 +10,21 @@ Phase 2 is implemented locally.
 - Analysis history and interface preferences use browser `localStorage` by design.
 - Backend endpoints and ML behavior remain unchanged.
 
+## Performance Status
+
+- Cold local `import app` improved from approximately 4,449ms to 1,934ms by removing unconditional NLTK downloader work.
+- Warm prediction remains in the single-digit millisecond range and is below the 500ms local target.
+- Repeated text uses a model-version-aware bounded cache and indexed SQLite lookup.
+- Request timings are emitted as structured logs for production measurement.
+- Detailed measurements and caveats are documented in `reports/performance_audit.md` and `reports/performance_before_after.md`.
+
+## Feedback Learning Loop
+
+- Feedback stores the analyzed text, prediction snapshot, model version, consent, review status, and timestamps through an idempotent SQLite migration.
+- `/admin/feedback` is review-only; approved and consented human/AI labels are the only records exported for training.
+- `tools/export_feedback_dataset.py` writes reviewed samples into `data/raw/feedback/` with metadata.
+- `train_model.py` uses original data by default and requires `--include-feedback` to include the exported approved dataset. Promotion requires `--promote`.
+
 ## ML Status
 
 - Raw dataset: 38 samples, balanced by directory label.

@@ -200,6 +200,8 @@ textarea::placeholder { color: var(--faint); }
 .feedback-btn:hover:not(:disabled), .feedback-btn.is-selected { background: var(--foreground); border-color: var(--foreground); color: var(--accent-contrast); }
 .feedback-btn:disabled { cursor: default; opacity: 0.55; }
 .feedback-status { color: var(--success); font-size: 10px; grid-column: 1 / -1; }
+.feedback-consent { align-items: flex-start; color: var(--subtle); display: flex; font-size: 10px; gap: 7px; grid-column: 1 / -1; line-height: 1.45; }
+.feedback-consent input { accent-color: var(--foreground); margin-top: 1px; }
 .error-card { align-items: center; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border)); border-radius: var(--radius-small); color: var(--danger); display: flex; font-size: 12px; gap: 9px; margin-top: 18px; padding: 13px; }
 .error-card svg { height: 16px; width: 16px; }
 

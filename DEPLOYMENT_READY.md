@@ -16,7 +16,7 @@
 - [x] Debug mode is disabled by default.
 - [x] Host binds to `0.0.0.0`.
 - [x] `PORT` is read from the environment.
-- [x] `gunicorn app:app` is configured for Render.
+- [x] Gunicorn is configured for Render Free with one worker, two threads, explicit timeout, and stdout/stderr logs.
 - [x] `/health` reports model availability.
 - [x] `/api/check` returns 400, 503, or 200 as appropriate.
 - [x] `/api/feedback` returns 400, 404, or 201 as appropriate.
@@ -43,7 +43,7 @@
 - [x] `render.yaml` exists.
 - [x] Pinned dependency install is configured.
 - [x] NLTK stopwords are downloaded during the build.
-- [x] `gunicorn app:app` is configured as the start command.
+- [x] `gunicorn app:app --workers 1 --threads 2 --timeout 120 --access-logfile - --error-logfile -` is configured as the start command.
 - [x] `/health` is configured as `healthCheckPath`.
 - [x] Python 3.11 is declared in `runtime.txt` and `.python-version`.
 

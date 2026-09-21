@@ -12,6 +12,14 @@
 
 Текущая версия включает teacher-oriented dashboard: анализатор, локальную историю, настройки темы и плотности, документацию, сведения о проекте и адаптивную навигацию для мобильных устройств. История и настройки сохраняются только в `localStorage` текущего браузера; результаты анализа и обратная связь продолжают использовать существующие Flask API.
 
+## Производительность
+
+Приложение загружает модель один раз при старте процесса. Для повторных текстов используется SHA-256-кэш с учетом версии модели, а SQLite настроен на WAL и индексированный поиск. Локальный cold start после оптимизации составляет около 1,9 секунды, обычное предсказание — единицы миллисекунд. Подробные ограничения и методика измерений находятся в `reports/performance_audit.md` и `reports/performance_before_after.md`.
+
+## Цикл обратной связи
+
+Ответы пользователей сохраняются как `pending`. Администратор проверяет их через `/admin/feedback` и переводит в `approved`, `rejected` или `duplicate`. Только одобренные записи с включенным согласием на обучение экспортируются в `data/raw/feedback/`; автоматического обучения по pending-данным нет. Для production задайте секрет `ADMIN_TOKEN`.
+
 ---
 
 ## Как работает
@@ -62,7 +70,14 @@
 
 3. Проанализировать датасет и переобучить модель
    python tools/dataset_analyzer.py
-   python train_model.py
+   python train_model.py --model-version phase2-v1
+
+   # Export approved, consented feedback after admin review, then train a new version
+   python tools/export_feedback_dataset.py
+   python train_model.py --include-feedback --model-version phase2-v2
+
+   # Promote a reviewed version explicitly; training never promotes automatically
+   python train_model.py --include-feedback --model-version phase2-v2 --promote
 
 4. Запустить приложение
    python app.py
@@ -76,7 +91,7 @@ The repository includes `render.yaml` with:
 
 ```text
 Build: pip install -r requirements.txt
-Start: gunicorn app:app
+Start: gunicorn app:app --workers 1 --threads 2 --timeout 120 --access-logfile - --error-logfile -
 ```
 
 The trained artifact `models/model.pkl` must be committed to the repository. The

@@ -1,3 +1,5 @@
+import uuid
+
 from app import app
 
 
@@ -18,7 +20,7 @@ def test_feedback_is_saved_as_pending():
     client = app.test_client()
     analysis = client.post(
         "/api/check",
-        json={"text": "Это достаточно длинный текст для проверки сохранения обратной связи."},
+        json={"text": f"Это достаточно длинный текст для проверки сохранения обратной связи {uuid.uuid4()}."},
     ).get_json()
 
     response = client.post(

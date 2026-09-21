@@ -3,7 +3,7 @@
 ## Completed
 
 - Flask application exposes `app` from `app.py`.
-- Production startup uses `gunicorn app:app`.
+- Production startup uses one Gunicorn worker with two threads and explicit logs/timeouts for Render Free.
 - `/health` reports model availability for Render health checks.
 - Render Blueprint added in `render.yaml`.
 - Python 3.11 runtime declared in `runtime.txt` and `.python-version`.
@@ -16,6 +16,7 @@
 - Invalid JSON and invalid `text` values return HTTP 400.
 - SQLite creates its parent directory automatically.
 - Existing tests and feedback workflow remain available.
+- Admin review requires `ADMIN_TOKEN` in production; without it, the local admin page is intentionally open for development.
 
 ## Missing or External
 
@@ -36,6 +37,7 @@
 ## Remaining
 
 - Migrate feedback storage to a managed database for durable production data.
+- Set a strong `ADMIN_TOKEN` secret before exposing `/admin/feedback`.
 - Add the PostgreSQL implementation behind `DATABASE_URL` when a managed database is provisioned.
 - Configure a custom domain and production monitoring in Render if needed.
 

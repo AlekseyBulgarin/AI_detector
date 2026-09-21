@@ -3,6 +3,7 @@ __pycache__/
 *.pyo
 *.pkl
 !models/model.pkl
+!models/model_v*.pkl
 .env
 venv/
 .venv/

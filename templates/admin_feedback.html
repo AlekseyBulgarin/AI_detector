@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Detector | Feedback Review</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .admin-page { margin: 0 auto; max-width: 1100px; padding: 42px 24px; }
+        .admin-header { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 24px; }
+        .admin-header p, .admin-empty, .admin-login p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+        .admin-table { overflow-x: auto; }
+        table { border-collapse: collapse; min-width: 800px; width: 100%; }
+        th, td { border-bottom: 1px solid var(--border); padding: 14px 12px; text-align: left; vertical-align: top; }
+        th { color: var(--subtle); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+        td { color: var(--muted); font-size: 12px; }
+        td strong { color: var(--foreground); display: block; font-weight: 600; margin-bottom: 5px; }
+        .admin-preview { max-width: 360px; white-space: pre-wrap; }
+        .admin-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+        .admin-actions button, .admin-login button { background: var(--foreground); border: 1px solid var(--foreground); border-radius: 6px; color: var(--accent-contrast); cursor: pointer; font-size: 11px; padding: 7px 10px; }
+        .admin-actions button[data-status="rejected"], .admin-actions button[data-status="duplicate"] { background: transparent; border-color: var(--border-light); color: var(--muted); }
+        .admin-login { margin: 16vh auto; max-width: 420px; }
+        .admin-login form { display: flex; gap: 8px; margin-top: 18px; }
+        .admin-login input { background: var(--background); border: 1px solid var(--border); border-radius: 6px; color: var(--foreground); min-width: 0; padding: 9px 10px; width: 100%; }
+        .admin-error { color: var(--danger); font-size: 12px; margin-top: 12px; }
+    </style>
+</head>
+<body>
+{% if login_required or login_error %}
+    <main class="admin-page admin-login panel">
+        <p class="eyebrow">AI Detector</p>
+        <h1>Feedback review</h1>
+        <p>Enter the admin token configured in <code>ADMIN_TOKEN</code>.</p>
+        {% if login_error %}<p class="admin-error">Invalid admin token.</p>{% endif %}
+        <form method="post">
+            <label class="sr-only" for="token">Admin token</label>
+            <input id="token" name="token" type="password" autocomplete="current-password" required>
+            <button type="submit">Sign in</button>
+        </form>
+    </main>
+{% else %}
+    <main class="admin-page">
+        <header class="admin-header">
+            <div><p class="eyebrow">Human feedback learning loop</p><h1>Feedback review</h1><p>Approve only trusted, consented labels before exporting them for retraining.</p></div>
+            <a class="text-button" href="{{ url_for('index') }}">Back to app</a>
+        </header>
+        {% if feedback %}
+        <section class="panel admin-table" aria-label="Pending feedback">
+            <table>
+                <thead><tr><th>Text preview</th><th>Model</th><th>User label</th><th>Consent</th><th>Actions</th></tr></thead>
+                <tbody>
+                {% for item in feedback %}
+                <tr>
+                    <td class="admin-preview"><strong>#{{ item.id }} · {{ item.created_at }}</strong>{{ item.text_content[:500] if item.text_content else 'Text unavailable from legacy record.' }}</td>
+                    <td>{{ item.prediction_label }}<br>{{ '%.1f'|format(item.prediction_probability) }}%<br>{{ item.model_version }}</td>
+                    <td><strong>{{ item.user_label }}</strong>{{ item.status }}</td>
+                    <td>{{ 'Allowed' if item.allow_training else 'Not allowed' }}</td>
+                    <td><div class="admin-actions">{% for status in ('approved', 'rejected', 'duplicate') %}<form method="post" action="{{ url_for('admin_review_feedback', feedback_id=item.id) }}"><input type="hidden" name="status" value="{{ status }}"><button data-status="{{ status }}" type="submit">{{ status|capitalize }}</button></form>{% endfor %}</div></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% else %}<section class="panel admin-empty" style="padding: 36px;">No pending feedback is waiting for review.</section>{% endif %}
+    </main>
+{% endif %}
+</body>
+</html>

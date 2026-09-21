@@ -6,6 +6,8 @@ const form = document.getElementById('detectorForm')
 const submitBtn = document.getElementById('submitBtn')
 const historyKey = 'ai-detector-history'
 const preferencesKey = 'ai-detector-preferences'
+const feedbackConsentKey = 'ai-detector-feedback-consent'
+let statsTimer = null
 
 const viewTitles = {
 	analyzer: 'Dashboard', history: 'История', settings: 'Настройки',
@@ -155,7 +157,10 @@ function savePreferences() {
 	document.body.classList.toggle('compact-mode', density === 'compact')
 }
 
-if (textarea) textarea.addEventListener('input', updateTextStats)
+if (textarea) textarea.addEventListener('input', function () {
+	window.clearTimeout(statsTimer)
+	statsTimer = window.setTimeout(updateTextStats, 80)
+})
 document.getElementById('clearText')?.addEventListener('click', function () { if (textarea) { textarea.value = ''; updateTextStats(); textarea.focus() } })
 textarea?.addEventListener('dragover', (event) => { event.preventDefault(); textarea.closest('.editor-shell')?.classList.add('is-dragging') })
 textarea?.addEventListener('dragleave', () => textarea.closest('.editor-shell')?.classList.remove('is-dragging'))
@@ -196,6 +201,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	document.getElementById('detailsToggle')?.addEventListener('change', savePreferences)
 	document.getElementById('animationsToggle')?.addEventListener('change', savePreferences)
 	document.querySelectorAll('input[name="density"]').forEach((input) => input.addEventListener('change', savePreferences))
+	const feedbackConsent = document.getElementById('feedbackConsent')
+	if (feedbackConsent) {
+		feedbackConsent.checked = localStorage.getItem(feedbackConsentKey) === 'true'
+		feedbackConsent.addEventListener('change', () => localStorage.setItem(feedbackConsentKey, String(feedbackConsent.checked)))
+	}
 	document.getElementById('clearHistoryTop')?.addEventListener('click', clearHistory)
 	document.getElementById('clearHistorySettings')?.addEventListener('click', clearHistory)
 	document.getElementById('clearHistorySettings')?.addEventListener('click', () => localStorage.removeItem(preferencesKey))
@@ -212,9 +222,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		feedback.querySelectorAll('.feedback-btn').forEach((item) => { item.disabled = true })
 		button.classList.add('is-selected')
 		try {
-			const response = await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis_id: feedback.dataset.analysisId, label: button.dataset.label }) })
+			const response = await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis_id: feedback.dataset.analysisId, label: button.dataset.label, allow_training: feedbackConsent?.checked === true }) })
 			if (!response.ok) throw new Error('feedback request failed')
-			feedback.querySelector('.feedback-status').textContent = 'Спасибо — ответ сохранён для проверки.'
+			feedback.querySelector('.feedback-status').textContent = 'Спасибо. Ваш отзыв помогает улучшать модель.'
 		} catch (error) {
 			feedback.querySelectorAll('.feedback-btn').forEach((item) => { item.disabled = false })
 			button.classList.remove('is-selected')

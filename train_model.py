@@ -1,4 +1,6 @@
+import argparse
 import json
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -72,8 +74,51 @@ def write_report(results, output_path):
     Path(output_path).write_text("\n".join(lines), encoding="utf-8")
 
 
-def main():
-    records = load_dataset(PROJECT_ROOT / "data" / "raw")
+def load_training_records(include_feedback=False):
+    """Load original data plus exported approved feedback only when requested."""
+    original = load_dataset(PROJECT_ROOT / "data" / "raw")
+    for record in original:
+        record["source"] = "original"
+    if not include_feedback:
+        return original
+
+    feedback_root = PROJECT_ROOT / "data" / "raw" / "feedback"
+    if not feedback_root.exists():
+        return original
+    feedback = load_dataset(feedback_root)
+    seen_hashes = {record["hash"] for record in original}
+    seen_normalized = {record["normalized_hash"] for record in original}
+    for record in feedback:
+        if record["hash"] in seen_hashes or record["normalized_hash"] in seen_normalized:
+            continue
+        record["source"] = "approved_feedback"
+        original.append(record)
+        seen_hashes.add(record["hash"])
+        seen_normalized.add(record["normalized_hash"])
+    return original
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description="Train a versioned AI Detector model")
+    parser.add_argument(
+        "--include-feedback",
+        action="store_true",
+        help="Include only exported approved and consented feedback samples",
+    )
+    parser.add_argument("--model-version", help="Model version, for example phase2-v2")
+    parser.add_argument("--output-model", type=Path, help="Optional output model path")
+    parser.add_argument(
+        "--promote",
+        action="store_true",
+        help="Copy the versioned artifact and metadata to the active model paths",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(argv)
+    model_version = args.model_version or ("phase2-v2" if args.include_feedback else "phase2-v1")
+    records = load_training_records(args.include_feedback)
     texts = np.array([record["text"] for record in records], dtype=object)
     labels = np.array([record["label_id"] for record in records])
 
@@ -105,27 +150,38 @@ def main():
             results[name]["cross_validation"]["roc_auc"]["mean"],
         ),
     )
-    model_path = PROJECT_ROOT / "models" / "model.pkl"
-    metadata_path = PROJECT_ROOT / "models" / "metadata.json"
+    version_suffix = model_version.removeprefix("phase2-")
+    model_path = args.output_model or PROJECT_ROOT / "models" / f"model_{version_suffix}.pkl"
+    metadata_path = PROJECT_ROOT / "models" / f"metadata_{version_suffix}.json"
     model_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(fitted_models[best_name], model_path)
 
+    created_at = datetime.now(timezone.utc).isoformat()
+    feedback_samples = sum(record.get("source") == "approved_feedback" for record in records)
     metadata = {
-        "model_version": "phase2-v1",
+        "version": model_version,
+        "model_version": model_version,
         "selected_model": best_name,
         "dataset_size": len(records),
+        "feedback_samples": feedback_samples,
+        "dataset_version": f"original+approved-feedback-{feedback_samples}",
         "train_size": len(train_labels),
         "test_size": len(test_labels),
         "features_version": "linguistic-v1+tfidf-v1",
         "sklearn_version": sklearn.__version__,
-        "training_date": datetime.now(timezone.utc).isoformat(),
+        "training_date": created_at,
+        "created_at": created_at,
         "random_state": RANDOM_STATE,
         "metrics": results,
     }
     metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     write_report(results, PROJECT_ROOT / "reports" / "model_comparison.md")
+    if args.promote:
+        shutil.copyfile(model_path, PROJECT_ROOT / "models" / "model.pkl")
+        shutil.copyfile(metadata_path, PROJECT_ROOT / "models" / "metadata.json")
     print(f"Selected model: {best_name}")
     print(f"Saved model: {model_path}")
+    return metadata
 
 
 if __name__ == "__main__":

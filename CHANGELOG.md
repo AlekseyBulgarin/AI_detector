@@ -1,5 +1,20 @@
 # Changelog
 
+## Performance Optimization
+
+- Reduced normal cold-start work by avoiding an unconditional NLTK resource download.
+- Added model-version-aware SHA-256 analysis reuse with a bounded in-process cache and SQLite lookup index.
+- Enabled SQLite WAL/busy-timeout settings and structured request timing logs.
+- Tuned Render Gunicorn conservatively to one worker and two threads.
+- Debounced frontend text statistics without changing prediction or feedback behavior.
+
+## Human Feedback Learning Loop
+
+- Added feedback schema migration with prediction snapshots, text retention, consent, review status, and review timestamps.
+- Added feedback validation, duplicate prevention, protected admin review actions, and approved dataset export.
+- Added explicit versioned training outputs; pending or unconsented feedback is never included, and promotion is opt-in.
+- Added frontend consent preference and user-facing feedback confirmation.
+
 ## SaaS Frontend
 
 - Added a responsive teacher dashboard with navigation for analysis, history, settings, documentation, and project information.

@@ -3,6 +3,6 @@ services:
     name: ai-detector
     runtime: python
     buildCommand: pip install -r requirements.txt && python -c "import nltk; nltk.download('stopwords')"
-    startCommand: gunicorn app:app
+    startCommand: gunicorn app:app --workers 1 --threads 2 --timeout 120 --access-logfile - --error-logfile -
     plan: free
     healthCheckPath: /health

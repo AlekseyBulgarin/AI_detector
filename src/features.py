@@ -5,8 +5,12 @@ import numpy as np
 from nltk.corpus import stopwords
 
 
-nltk.download("stopwords", quiet=True)
-STOP_WORDS = set(stopwords.words("russian"))
+try:
+	STOP_WORDS = set(stopwords.words("russian"))
+except LookupError:
+	# Render downloads the resource during the build; keep local setup self-healing.
+	nltk.download("stopwords", quiet=True)
+	STOP_WORDS = set(stopwords.words("russian"))
 
 
 def extract_features(text):

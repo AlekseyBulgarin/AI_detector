@@ -13,7 +13,7 @@ def test_template_contains_teacher_dashboard_views_and_controls():
 
     for view in ("analyzer", "history", "settings", "documentation", "about"):
         assert f'id="view-{view}"' in template
-    for control in ("clearText", "historyList", "detailsToggle", "animationsToggle", "infoModal"):
+    for control in ("clearText", "historyList", "detailsToggle", "animationsToggle", "feedbackConsent", "infoModal"):
         assert f'id="{control}"' in template
     assert 'name="density" value="comfortable"' in template
     assert 'name="density" value="compact"' in template
@@ -38,6 +38,8 @@ def test_javascript_contains_local_history_and_input_workflows():
         assert feature in script
     assert "modelVersion" in script
     assert "prediction" in script
+    assert "allow_training" in script
+    assert "помогает улучшать модель" in script
 
 
 def test_styles_define_responsive_dashboard_and_accessibility_states():

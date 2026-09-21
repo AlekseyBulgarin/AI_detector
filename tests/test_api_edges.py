@@ -1,3 +1,7 @@
+from collections import OrderedDict
+import logging
+import uuid
+
 import app as application
 
 
@@ -88,3 +92,75 @@ def test_health_reports_model_contract(monkeypatch):
         "model_loaded": True,
         "model_version": "test-model",
     }
+
+
+def test_repeated_text_reuses_cached_analysis(monkeypatch):
+    calls = {"predict": 0, "record": 0}
+    monkeypatch.setattr(application, "analysis_cache", OrderedDict())
+    monkeypatch.setattr(application, "find_analysis_by_hash", lambda *_args: None)
+
+    def fake_prediction(_text):
+        calls["predict"] += 1
+        return 42.5
+
+    def fake_record(*_args):
+        calls["record"] += 1
+        return "cached-analysis"
+
+    monkeypatch.setattr(application, "predict_probability", fake_prediction)
+    monkeypatch.setattr(application, "record_analysis", fake_record)
+
+    first = application.analyze_text(VALID_TEXT)
+    second = application.analyze_text(VALID_TEXT)
+
+    assert first == second
+    assert first["id"] == "cached-analysis"
+    assert calls == {"predict": 1, "record": 1}
+
+
+def test_request_timing_is_logged(caplog):
+    with caplog.at_level(logging.INFO, logger="app"):
+        response = application.app.test_client().get("/health")
+
+    assert response.status_code in {200, 503}
+    assert any("event=request_completed" in record.message for record in caplog.records)
+
+
+def test_feedback_api_returns_duplicate_and_preserves_consent():
+    client = application.app.test_client()
+    text = f"Это уникальный текст для проверки feedback API {uuid.uuid4()}."
+    analysis = client.post("/api/check", json={"text": text}).get_json()
+
+    first = client.post(
+        "/api/feedback",
+        json={"analysis_id": analysis["analysis_id"], "label": "ai", "allow_training": True},
+    )
+    second = client.post(
+        "/api/feedback",
+        json={"analysis_id": analysis["analysis_id"], "label": "ai", "allow_training": True},
+    )
+
+    assert first.status_code == 201
+    assert first.get_json()["success"] is True
+    assert second.status_code == 200
+    assert second.get_json()["status"] == "duplicate"
+
+
+def test_admin_feedback_page_and_review_action_work_without_configured_token():
+    client = application.app.test_client()
+    text = f"This is an admin review sample {uuid.uuid4()} with enough text."
+    analysis = client.post("/api/check", json={"text": text}).get_json()
+    feedback = client.post(
+        "/api/feedback",
+        json={"analysis_id": analysis["analysis_id"], "label": "human", "allow_training": True},
+    ).get_json()
+    review = client.post(
+        f"/admin/feedback/{feedback['feedback_id']}",
+        json={"status": "approved"},
+    )
+    page = client.get("/admin/feedback")
+
+    assert page.status_code == 200
+    assert review.status_code == 200
+    assert review.get_json()["status"] == "approved"
+    assert "Feedback review" in page.get_data(as_text=True)
