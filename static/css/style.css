@@ -128,9 +128,14 @@ kbd { background: var(--background-raised); border: 1px solid var(--border-light
 .analyzer-form { margin-top: 24px; }
 .editor-shell { background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-small); overflow: hidden; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 .editor-shell:focus-within { border-color: var(--border-light); box-shadow: 0 0 0 3px color-mix(in srgb, var(--foreground) 5%, transparent); }
+.editor-shell.is-dragging { border-color: var(--foreground); box-shadow: 0 0 0 3px color-mix(in srgb, var(--foreground) 10%, transparent); }
 .editor-toolbar, .editor-footer { align-items: center; color: var(--subtle); display: flex; font-size: 11px; justify-content: space-between; padding: 11px 13px; }
 .editor-toolbar { border-bottom: 1px solid var(--border); }
 .editor-toolbar span { align-items: center; display: flex; gap: 7px; }
+.editor-actions { gap: 12px !important; }
+.editor-actions button { align-items: center; background: transparent; border: 0; color: var(--subtle); cursor: pointer; display: inline-flex; font-size: 10px; gap: 4px; padding: 0; }
+.editor-actions button:hover { color: var(--foreground); }
+.editor-actions button svg { height: 13px; width: 13px; }
 .editor-toolbar svg { height: 14px; width: 14px; }
 .editor-toolbar span:last-child { font-size: 9px; letter-spacing: 0.1em; }
 textarea { background: transparent; border: 0; color: var(--foreground); display: block; font-size: 14px; line-height: 1.7; min-height: 220px; outline: 0; padding: 17px 13px 9px; resize: vertical; width: 100%; }
@@ -238,6 +243,12 @@ textarea::placeholder { color: var(--faint); }
 .metadata-list dt { color: var(--subtle); font-size: 11px; }
 .metadata-list dd { font-size: 11px; }
 .danger-zone { align-items: center; border-top: 1px solid var(--border); display: flex; justify-content: space-between; margin-top: 7px; padding-top: 17px; }
+.future-settings { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 17px; }
+.future-setting { align-items: center; background: transparent; border: 0; border-top: 1px solid var(--border); color: var(--muted); cursor: pointer; display: flex; font-size: 11px; gap: 9px; padding: 11px 0; text-align: left; width: 100%; }
+.future-setting:first-of-type { margin-top: 8px; }
+.future-setting svg { height: 14px; width: 14px; }
+.future-setting svg:last-child { color: var(--faint); margin-left: auto; }
+.future-setting:hover { color: var(--foreground); }
 .danger-zone div { display: flex; flex-direction: column; gap: 4px; }
 .outline-danger { background: transparent; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border)); border-radius: 6px; color: var(--danger); cursor: pointer; font-size: 10px; padding: 7px 9px; }
 .outline-danger:hover { background: color-mix(in srgb, var(--danger) 8%, transparent); }
@@ -269,6 +280,14 @@ textarea::placeholder { color: var(--faint); }
 .about-meta a { align-items: center; display: inline-flex; gap: 4px; margin-left: auto; }
 .about-meta a:hover { color: var(--foreground); }
 .about-meta a svg { height: 13px; width: 13px; }
+.modal-backdrop { align-items: center; background: rgba(0, 0, 0, 0.58); display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 50; }
+.modal-backdrop[hidden] { display: none; }
+.info-modal { background: var(--card); border: 1px solid var(--border-light); border-radius: var(--radius); box-shadow: var(--shadow); max-width: 390px; padding: 25px; position: relative; width: 100%; }
+.info-modal h2 { margin: 7px 0 10px; }
+.info-modal p:last-child { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.modal-close { background: transparent; border: 0; color: var(--subtle); cursor: pointer; position: absolute; right: 15px; top: 15px; }
+.modal-close:hover { color: var(--foreground); }
+.modal-close svg { height: 16px; width: 16px; }
 
 .site-footer { border-top: 1px solid var(--border); color: var(--subtle); display: flex; font-size: 10px; justify-content: space-between; margin: 0 38px; padding: 20px 0 24px; }
 .site-footer span:first-child { color: var(--muted); font-weight: 600; }
@@ -331,3 +350,5 @@ textarea::placeholder { color: var(--faint); }
 @media (prefers-reduced-motion: reduce) {
 	*, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+
+body.no-animations *, body.no-animations *::before, body.no-animations *::after { animation: none !important; transition: none !important; }

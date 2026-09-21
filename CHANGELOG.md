@@ -1,5 +1,11 @@
 # Changelog
 
+## SaaS Frontend
+
+- Added a responsive teacher dashboard with navigation for analysis, history, settings, documentation, and project information.
+- Added local analysis history, theme and density preferences, animation control, drag-and-drop text loading, and future-feature placeholders.
+- Added privacy guidance, contact link, accessible result feedback, and responsive mobile navigation without changing backend contracts.
+
 ## Phase 2
 
 - Added dataset quality analysis and metadata generation.

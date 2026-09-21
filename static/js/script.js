@@ -8,7 +8,7 @@ const historyKey = 'ai-detector-history'
 const preferencesKey = 'ai-detector-preferences'
 
 const viewTitles = {
-	analyzer: 'Анализатор', history: 'История', settings: 'Настройки',
+	analyzer: 'Dashboard', history: 'История', settings: 'Настройки',
 	documentation: 'Документация', about: 'О проекте'
 }
 
@@ -42,6 +42,12 @@ function animateScore() {
 	const score = document.getElementById('animatedScore')
 	const progress = document.getElementById('progressFill')
 	if (!resultCard || !score || !progress) return
+	if (JSON.parse(localStorage.getItem(preferencesKey) || '{}').animations === false) {
+		const target = Math.max(0, Math.min(100, Number(resultCard.dataset.probability) || 0))
+		score.textContent = target.toFixed(1)
+		progress.style.setProperty('--score', `${target / 100}`)
+		return
+	}
 	const target = Math.max(0, Math.min(100, Number(resultCard.dataset.probability) || 0))
 	progress.style.setProperty('--score', `${target / 100}`)
 	progress.classList.add('is-animated')
@@ -66,6 +72,8 @@ function saveHistory() {
 		id: document.querySelector('.feedback')?.dataset.analysisId || `local-${Date.now()}`,
 		text: textarea.value.trim(),
 		probability: Number(resultCard.dataset.probability) || 0,
+		prediction: Number(resultCard.dataset.probability) > 65 ? 'ai' : Number(resultCard.dataset.probability) > 35 ? 'mixed' : 'human',
+		modelVersion: 'phase2-v1',
 		createdAt: new Date().toISOString()
 	}
 	const history = getHistory().filter((entry) => entry.id !== item.id)
@@ -90,7 +98,7 @@ function renderHistory() {
 	}
 	list.innerHTML = history.map((item) => {
 		const score = Number(item.probability).toFixed(1)
-		const verdict = item.probability > 65 ? 'Высокая вероятность AI' : item.probability > 35 ? 'Смешанные сигналы' : 'Человеческий стиль'
+		const verdict = item.prediction === 'ai' || item.probability > 65 ? 'Высокая вероятность AI' : item.prediction === 'mixed' || item.probability > 35 ? 'Смешанные сигналы' : 'Человеческий стиль'
 		return `<article class="history-item" data-history-id="${escapeHtml(item.id)}"><div class="history-icon"><i data-lucide="file-text"></i></div><div class="history-content"><strong>${escapeHtml(item.text.slice(0, 92))}${item.text.length > 92 ? '…' : ''}</strong><span>${formatDate(item.createdAt)} · ${verdict}</span></div><div class="history-score">${score}%</div><div class="history-actions"><button type="button" class="history-view" data-history-view="${escapeHtml(item.id)}">Открыть</button><button type="button" class="history-delete" data-history-delete="${escapeHtml(item.id)}" aria-label="Удалить анализ"><i data-lucide="trash-2"></i></button></div></article>`
 	}).join('')
 	initializeIcons()
@@ -126,22 +134,41 @@ function loadPreferences() {
 	const themeInput = document.querySelector(`input[name="theme"][value="${theme}"]`)
 	if (themeInput) themeInput.checked = true
 	const details = document.getElementById('detailsToggle')
-	const compact = document.getElementById('compactToggle')
+	const animations = document.getElementById('animationsToggle')
+	const density = document.querySelector(`input[name="density"][value="${preferences.density || (preferences.compact ? 'compact' : 'comfortable')}"]`)
 	if (details) { details.checked = preferences.details !== false; document.body.classList.toggle('hide-details', !details.checked) }
-	if (compact) { compact.checked = preferences.compact === true; document.body.classList.toggle('compact-mode', compact.checked) }
+	if (animations) animations.checked = preferences.animations !== false
+	if (density) density.checked = true
+	document.body.classList.toggle('no-animations', preferences.animations === false)
+	document.body.classList.toggle('compact-mode', preferences.density === 'compact' || preferences.compact === true)
 }
 
 function savePreferences() {
 	const theme = document.querySelector('input[name="theme"]:checked')?.value || 'system'
 	const details = document.getElementById('detailsToggle')?.checked !== false
-	const compact = document.getElementById('compactToggle')?.checked === true
-	localStorage.setItem(preferencesKey, JSON.stringify({ theme, details, compact }))
+	const animations = document.getElementById('animationsToggle')?.checked !== false
+	const density = document.querySelector('input[name="density"]:checked')?.value || 'comfortable'
+	localStorage.setItem(preferencesKey, JSON.stringify({ theme, details, animations, density }))
 	document.documentElement.dataset.theme = theme
 	document.body.classList.toggle('hide-details', !details)
-	document.body.classList.toggle('compact-mode', compact)
+	document.body.classList.toggle('no-animations', !animations)
+	document.body.classList.toggle('compact-mode', density === 'compact')
 }
 
 if (textarea) textarea.addEventListener('input', updateTextStats)
+document.getElementById('clearText')?.addEventListener('click', function () { if (textarea) { textarea.value = ''; updateTextStats(); textarea.focus() } })
+textarea?.addEventListener('dragover', (event) => { event.preventDefault(); textarea.closest('.editor-shell')?.classList.add('is-dragging') })
+textarea?.addEventListener('dragleave', () => textarea.closest('.editor-shell')?.classList.remove('is-dragging'))
+textarea?.addEventListener('drop', function (event) {
+	event.preventDefault()
+	textarea.closest('.editor-shell')?.classList.remove('is-dragging')
+	const file = event.dataTransfer?.files?.[0]
+	if (!file) return
+	if (!file.name.toLowerCase().endsWith('.txt')) { if (warningMessage) warningMessage.textContent = 'Поддерживаются только текстовые файлы .txt.'; return }
+	const reader = new FileReader()
+	reader.addEventListener('load', () => { textarea.value = String(reader.result || '').slice(0, 30000); updateTextStats() })
+	reader.readAsText(file)
+})
 if (form) form.addEventListener('submit', function (event) {
 	if (!textarea || textarea.value.trim().length < 20) { event.preventDefault(); updateTextStats(); textarea?.focus(); return }
 	setLoading(true)
@@ -167,9 +194,18 @@ document.addEventListener('DOMContentLoaded', function () {
 	backdrop?.addEventListener('click', () => document.body.classList.remove('sidebar-open'))
 	document.querySelectorAll('input[name="theme"]').forEach((input) => input.addEventListener('change', savePreferences))
 	document.getElementById('detailsToggle')?.addEventListener('change', savePreferences)
-	document.getElementById('compactToggle')?.addEventListener('change', savePreferences)
+	document.getElementById('animationsToggle')?.addEventListener('change', savePreferences)
+	document.querySelectorAll('input[name="density"]').forEach((input) => input.addEventListener('change', savePreferences))
 	document.getElementById('clearHistoryTop')?.addEventListener('click', clearHistory)
 	document.getElementById('clearHistorySettings')?.addEventListener('click', clearHistory)
+	document.getElementById('clearHistorySettings')?.addEventListener('click', () => localStorage.removeItem(preferencesKey))
+
+	const modal = document.getElementById('infoModal')
+	const closeModal = () => { if (modal) modal.hidden = true }
+	document.querySelectorAll('[data-modal-title]').forEach((button) => button.addEventListener('click', () => { if (modal) { document.getElementById('modalTitle').textContent = button.dataset.modalTitle; modal.hidden = false; document.getElementById('modalClose')?.focus() } }))
+	document.getElementById('modalClose')?.addEventListener('click', closeModal)
+	modal?.addEventListener('click', (event) => { if (event.target === modal) closeModal() })
+	document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeModal() })
 
 	const feedback = document.querySelector('.feedback')
 	if (feedback) feedback.querySelectorAll('.feedback-btn').forEach((button) => button.addEventListener('click', async function () {

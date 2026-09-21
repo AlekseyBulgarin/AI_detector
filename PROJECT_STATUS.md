@@ -4,6 +4,12 @@
 
 Phase 2 is implemented locally.
 
+## Frontend Status
+
+- Responsive teacher-oriented dashboard is implemented in the existing Flask template.
+- Analysis history and interface preferences use browser `localStorage` by design.
+- Backend endpoints and ML behavior remain unchanged.
+
 ## ML Status
 
 - Raw dataset: 38 samples, balanced by directory label.
