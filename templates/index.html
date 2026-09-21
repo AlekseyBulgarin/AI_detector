@@ -3,144 +3,106 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="theme-color" content="#0b1020" />
-		<title>AI Detector | Проверка текста</title>
+		<meta name="theme-color" content="#09090b" />
+		<title>AI Detector | Рабочее пространство</title>
 		<link rel="icon" href="data:," />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
-			rel="stylesheet"
-		/>
+		<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 	</head>
 	<body>
-		<div class="app-shell">
-			<header class="topbar" aria-label="Навигация приложения">
-				<a class="brand" href="{{ url_for('index') }}" aria-label="AI Detector, на главную">
-					<span class="brand-mark" aria-hidden="true"><i data-lucide="scan-search"></i></span>
-					<span class="brand-name">AI Detector</span>
-				</a>
-				<div class="topbar-meta">
-					<span class="status-dot" aria-hidden="true"></span>
-					<span>Экспериментальная модель</span>
+		<div class="app-layout">
+			<aside class="sidebar" id="sidebar" aria-label="Основная навигация">
+				<div class="sidebar-top">
+					<a class="brand" href="{{ url_for('index') }}" aria-label="AI Detector, на главную">
+						<span class="brand-mark" aria-hidden="true"><i data-lucide="scan-search"></i></span>
+						<span class="brand-name">AI Detector</span>
+					</a>
+					<button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Свернуть меню" aria-expanded="true">
+						<i data-lucide="panel-left-close"></i>
+					</button>
 				</div>
-			</header>
 
-			<main class="main-content">
-				<section class="hero" aria-labelledby="page-title">
-					<div class="eyebrow"><span class="eyebrow-line"></span>Инструмент для преподавателей</div>
-					<h1 id="page-title">Понимайте текст <br /><span>глубже.</span></h1>
-					<p class="hero-copy">
-						Анализируйте стилистические сигналы текста и получайте понятный ориентир о его происхождении.
-					</p>
-				</section>
+				<nav class="sidebar-nav" aria-label="Разделы приложения">
+					<p class="nav-label">Рабочее пространство</p>
+					<button class="nav-item is-active" type="button" data-view-target="analyzer" aria-current="page">
+						<i data-lucide="scan-search" aria-hidden="true"></i><span>Анализатор</span>
+					</button>
+					<button class="nav-item" type="button" data-view-target="history">
+						<i data-lucide="history" aria-hidden="true"></i><span>История</span><span class="nav-count" id="historyCount">0</span>
+					</button>
+					<p class="nav-label nav-label-spaced">Ресурсы</p>
+					<button class="nav-item" type="button" data-view-target="settings">
+						<i data-lucide="settings-2" aria-hidden="true"></i><span>Настройки</span>
+					</button>
+					<button class="nav-item" type="button" data-view-target="documentation">
+						<i data-lucide="book-open" aria-hidden="true"></i><span>Документация</span>
+					</button>
+					<button class="nav-item" type="button" data-view-target="about">
+						<i data-lucide="info" aria-hidden="true"></i><span>О проекте</span>
+					</button>
+				</nav>
 
-				<section class="workspace" aria-labelledby="analyzer-title">
-					<div class="workspace-heading">
-						<div>
-							<p class="section-kicker">01 / Анализ</p>
-							<h2 id="analyzer-title">Добавьте текст для проверки</h2>
+				<div class="sidebar-bottom">
+					<div class="system-status"><span class="status-dot" aria-hidden="true"></span><span>Система онлайн</span></div>
+					<div class="sidebar-version"><span>AI Detector</span><span>v2.0 · Flask</span></div>
+				</div>
+			</aside>
+
+			<div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+			<div class="app-main">
+				<header class="topbar">
+					<button class="mobile-menu" id="mobileMenu" type="button" aria-label="Открыть меню" aria-expanded="false"><i data-lucide="menu"></i></button>
+					<div class="breadcrumb"><span>AI Detector</span><i data-lucide="chevron-right" aria-hidden="true"></i><strong id="pageTitle">Анализатор</strong></div>
+					<div class="topbar-actions"><span class="model-status"><span class="status-dot" aria-hidden="true"></span> Модель активна</span><button class="topbar-icon" type="button" data-view-target="settings" aria-label="Открыть настройки"><i data-lucide="settings-2"></i></button></div>
+				</header>
+
+				<main class="content" id="mainContent">
+					<section class="dashboard-view is-active" id="view-analyzer" data-view="analyzer" aria-labelledby="analyzer-title">
+						<div class="view-heading">
+							<div><p class="eyebrow">Рабочее пространство</p><h1 id="analyzer-title">Анализатор текста</h1><p>Проверьте текст и получите структурированный ориентир о его происхождении.</p></div>
+							<div class="heading-meta"><span class="live-indicator"><span class="status-dot"></span> Готов к анализу</span></div>
 						</div>
-						<span class="shortcut-hint"><kbd>⌘</kbd><kbd>↵</kbd> Запустить</span>
-					</div>
 
-					<form method="POST" action="/check" id="detectorForm" class="analyzer-form">
-						<label class="sr-only" for="user_text">Текст для анализа</label>
-						<div class="editor-shell">
-							<div class="editor-toolbar" aria-hidden="true">
-								<span class="toolbar-label"><i data-lucide="file-text"></i> Новый анализ</span>
-								<span class="toolbar-type">RU / TEXT</span>
-							</div>
-							<textarea
-								id="user_text"
-								name="user_text"
-								rows="11"
-								maxlength="30000"
-								aria-describedby="editor-help charCount warningMessage"
-								placeholder="Вставьте эссе, ответ ученика или фрагмент текста..."
-							>{% if user_text %}{{ user_text }}{% endif %}</textarea>
-							<div class="editor-footer">
-								<span id="editor-help" class="editor-help">Минимум 20 символов для анализа</span>
-								<span class="editor-stats"><span id="wordCount">0</span> слов <span class="stats-divider">·</span> <span id="charCount">0</span> знаков</span>
-							</div>
-						</div>
-						<p id="warningMessage" class="input-message" aria-live="polite"></p>
-						<button type="submit" id="submitBtn" class="analyze-button">
-							<span class="btn-content"><i data-lucide="sparkles"></i><span class="btn-text">Проанализировать текст</span></span>
-							<span class="btn-loading" aria-hidden="true"><span class="spinner"></span> Анализируем</span>
-							<i class="button-arrow" data-lucide="arrow-up-right" aria-hidden="true"></i>
-						</button>
-					</form>
-				</section>
+						<section class="panel analyzer-panel" aria-labelledby="input-title">
+							<div class="panel-header"><div><p class="panel-overline">Новый анализ</p><h2 id="input-title">Вставьте текст для проверки</h2></div><span class="shortcut-hint"><kbd>Ctrl</kbd><kbd>↵</kbd></span></div>
+							<form method="POST" action="/check" id="detectorForm" class="analyzer-form">
+								<label class="sr-only" for="user_text">Текст для анализа</label>
+								<div class="editor-shell">
+									<div class="editor-toolbar"><span><i data-lucide="file-text" aria-hidden="true"></i> Текстовый документ</span><span>RU / TEXT</span></div>
+									<textarea id="user_text" name="user_text" rows="11" maxlength="30000" aria-describedby="editor-help charCount warningMessage" placeholder="Вставьте эссе, ответ ученика или фрагмент текста...">{% if user_text %}{{ user_text }}{% endif %}</textarea>
+									<div class="editor-footer"><span id="editor-help">Минимум 20 символов для анализа</span><span><span id="wordCount">0</span> слов <b>·</b> <span id="charCount">0</span> знаков</span></div>
+								</div>
+								<p id="warningMessage" class="input-message" aria-live="polite"></p>
+								<button type="submit" id="submitBtn" class="primary-button"><span class="btn-content"><i data-lucide="scan-search" aria-hidden="true"></i><span>Проанализировать</span></span><span class="btn-loading" aria-hidden="true"><span class="spinner"></span> Анализируем</span><i class="button-arrow" data-lucide="arrow-up-right" aria-hidden="true"></i></button>
+							</form>
+						</section>
 
-				{% if probability is not none %}
-				<section class="result-card" id="resultCard" data-probability="{{ probability }}" aria-labelledby="result-title">
-					<div class="result-topline">
-						<div>
-							<p class="section-kicker">02 / Вывод модели</p>
-							<h2 id="result-title">Результат анализа</h2>
-						</div>
-						<span class="result-badge"><i data-lucide="shield-check"></i> Готово</span>
-					</div>
+						{% if probability is not none %}
+						<section class="panel result-panel" id="resultCard" data-probability="{{ probability }}" aria-labelledby="result-title">
+							<div class="panel-header"><div><p class="panel-overline">Результат</p><h2 id="result-title">Вывод модели</h2></div><span class="result-badge"><i data-lucide="check" aria-hidden="true"></i> Завершено</span></div>
+							<div class="score-layout"><div><span class="score-label">Вероятность AI</span><div class="score-value"><span id="animatedScore" aria-live="polite">0</span><small>%</small></div><p class="score-note">Оценка на основе языковых и структурных признаков.</p></div><div class="score-visual" aria-label="Индикатор вероятности AI"><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><div class="progress-scale"><span>Человек</span><span>AI</span></div></div></div>
+							<div class="verdict {{ 'high' if probability > 65 else 'medium' if probability > 35 else 'low' }}"><div class="verdict-icon" aria-hidden="true">{% if probability > 65 %}<i data-lucide="bot"></i>{% elif probability > 35 %}<i data-lucide="circle-help"></i>{% else %}<i data-lucide="user-round"></i>{% endif %}</div><div><strong>{% if probability > 70 %}Высокая вероятность AI{% elif probability > 40 %}Смешанные сигналы{% else %}Человеческий стиль{% endif %}</strong><span>{% if probability > 70 %}Текст заметно похож на сгенерированный нейросетью.{% elif probability > 40 %}В тексте есть признаки как человека, так и AI.{% else %}Текст больше похож на написанный человеком.{% endif %}</span></div></div>
+							<div class="detail-section"><div class="detail-heading"><span class="panel-overline">Сигналы текста</span><span>Что учитывает модель</span></div><div class="feature-grid"><div class="feature-item"><span><i data-lucide="align-center"></i></span><div><strong>Структура предложений</strong><small>Ритм и вариативность фраз</small></div></div><div class="feature-item"><span><i data-lucide="book-open"></i></span><div><strong>Разнообразие слов</strong><small>Уникальность и плотность лексики</small></div></div><div class="feature-item"><span><i data-lucide="case-sensitive"></i></span><div><strong>Стоп-слова</strong><small>Связность и частотные слова</small></div></div><div class="feature-item"><span><i data-lucide="between-horizontal-start"></i></span><div><strong>Пунктуация</strong><small>Особенности оформления текста</small></div></div></div></div>
+							<div class="result-note"><i data-lucide="info" aria-hidden="true"></i><span>Результат является ориентиром, а не доказательством авторства. Учитывайте контекст и работу ученика.</span></div>
+							{% if analysis_id %}<div class="feedback" data-analysis-id="{{ analysis_id }}"><div class="feedback-copy"><i data-lucide="message-circle-question" aria-hidden="true"></i><div><strong>Помогите улучшить модель</strong><span>Как вы оцениваете происхождение текста?</span></div></div><div class="feedback-actions"><button type="button" class="feedback-btn" data-label="human">Человек</button><button type="button" class="feedback-btn" data-label="ai">AI</button><button type="button" class="feedback-btn" data-label="unsure">Не уверен</button></div><p class="feedback-status" aria-live="polite"></p></div>{% endif %}
+						</section>
+						{% endif %}
+						{% if error %}<div class="error-card" role="alert"><i data-lucide="alert-triangle" aria-hidden="true"></i><span>{{ error }}</span></div>{% endif %}
+					</section>
 
-					<div class="score-layout">
-						<div class="score-copy">
-							<span class="score-label">Вероятность AI</span>
-							<div class="score-value"><span id="animatedScore" aria-live="polite">0</span><span class="score-unit">%</span></div>
-							<p class="score-note">Оценка на основе языковых и структурных признаков текста.</p>
-						</div>
-						<div class="score-visual" aria-label="Индикатор вероятности AI">
-							<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-							<div class="progress-scale"><span>Человек</span><span>AI</span></div>
-						</div>
-					</div>
+					<section class="dashboard-view" id="view-history" data-view="history" aria-labelledby="history-title"><div class="view-heading"><div><p class="eyebrow">Рабочее пространство</p><h1 id="history-title">История анализов</h1><p>Ваши последние проверки на этом устройстве.</p></div></div><div class="panel history-panel"><div class="panel-header"><div><p class="panel-overline">Локальная история</p><h2>Последние анализы</h2></div><button class="text-button" id="clearHistoryTop" type="button">Очистить историю</button></div><div id="historyList" class="history-list"></div></div></section>
 
-					<div class="verdict {{ 'high' if probability > 65 else 'medium' if probability > 35 else 'low' }}">
-						<div class="verdict-icon" aria-hidden="true">
-							{% if probability > 65 %}<i data-lucide="bot"></i>{% elif probability > 35 %}<i data-lucide="circle-help"></i>{% else %}<i data-lucide="user-round"></i>{% endif %}
-						</div>
-						<div class="verdict-copy">
-							{% if probability > 70 %}
-							<strong>Высокая вероятность AI</strong><span>Текст заметно похож на сгенерированный нейросетью.</span>
-							{% elif probability > 40 %}
-							<strong>Смешанные сигналы</strong><span>В тексте есть признаки как человека, так и AI.</span>
-							{% else %}
-							<strong>Человеческий стиль</strong><span>Текст больше похож на написанный человеком.</span>
-							{% endif %}
-						</div>
-					</div>
+					<section class="dashboard-view" id="view-settings" data-view="settings" aria-labelledby="settings-title"><div class="view-heading"><div><p class="eyebrow">Конфигурация</p><h1 id="settings-title">Настройки</h1><p>Настройте рабочее пространство под свой сценарий.</p></div></div><div class="settings-grid"><section class="panel settings-panel"><div class="panel-header"><div><p class="panel-overline">Внешний вид</p><h2>Предпочтения интерфейса</h2></div></div><div class="setting-row"><div><strong>Тема</strong><span>Выберите оформление приложения</span></div><div class="theme-options" role="radiogroup" aria-label="Тема"><label><input type="radio" name="theme" value="system" checked /> Система</label><label><input type="radio" name="theme" value="light" /> Светлая</label><label><input type="radio" name="theme" value="dark" /> Тёмная</label></div></div><div class="setting-row"><div><strong>Подробный анализ</strong><span>Показывать сигналы текста в результате</span></div><label class="switch"><input id="detailsToggle" type="checkbox" checked /><span></span></label></div><div class="setting-row"><div><strong>Компактный режим</strong><span>Уменьшить вертикальные отступы</span></div><label class="switch"><input id="compactToggle" type="checkbox" /><span></span></label></div></section><section class="panel settings-panel"><div class="panel-header"><div><p class="panel-overline">О приложении</p><h2>Версия и модель</h2></div></div><dl class="metadata-list"><div><dt>Версия приложения</dt><dd>v2.0</dd></div><div><dt>Модель</dt><dd>phase2-v1</dd></div><div><dt>Датасет</dt><dd>35 уникальных текстов</dd></div></dl><div class="danger-zone"><div><strong>Локальные данные</strong><span>Очистить историю в этом браузере</span></div><button class="outline-danger" id="clearHistorySettings" type="button">Очистить</button></div></section></div></section>
 
-					<div class="feature-section">
-						<div class="feature-heading"><p class="section-kicker">Сигналы текста</p><span>Что учитывает модель</span></div>
-						<div class="feature-grid">
-							<div class="feature-item"><span class="feature-icon"><i data-lucide="align-center"></i></span><div><strong>Структура предложений</strong><span>Ритм и вариативность длины фраз</span></div></div>
-							<div class="feature-item"><span class="feature-icon"><i data-lucide="book-open"></i></span><div><strong>Разнообразие слов</strong><span>Уникальность и плотность лексики</span></div></div>
-							<div class="feature-item"><span class="feature-icon"><i data-lucide="case-sensitive"></i></span><div><strong>Стоп-слова</strong><span>Связность и частотные слова</span></div></div>
-							<div class="feature-item"><span class="feature-icon"><i data-lucide="between-horizontal-start"></i></span><div><strong>Пунктуация</strong><span>Особенности знаков и оформления</span></div></div>
-						</div>
-					</div>
+					<section class="dashboard-view" id="view-documentation" data-view="documentation" aria-labelledby="docs-title"><div class="view-heading"><div><p class="eyebrow">Справочный центр</p><h1 id="docs-title">Документация</h1><p>Коротко о том, как читать результаты AI Detector.</p></div></div><div class="docs-grid"><article class="panel doc-card"><span class="doc-number">01</span><i data-lucide="scan-text"></i><h2>Как это работает</h2><p>Система анализирует стилистические и структурные особенности текста: длину предложений, разнообразие слов, частотные служебные слова и пунктуацию.</p></article><article class="panel doc-card"><span class="doc-number">02</span><i data-lucide="list-checks"></i><h2>Как пользоваться</h2><ol><li>Вставьте текст ученика в анализатор.</li><li>Запустите проверку.</li><li>Изучите вероятность и сигналы модели.</li></ol></article><article class="panel doc-card"><span class="doc-number">03</span><i data-lucide="triangle-alert"></i><h2>Ограничения точности</h2><p>Вероятность — это ориентир, а не доказательство. Отредактированный AI-текст и короткие фрагменты могут быть особенно сложны для классификации.</p></article><article class="panel doc-card"><span class="doc-number">04</span><i data-lucide="messages-square"></i><h2>FAQ</h2><details><summary>Можно ли использовать результат как доказательство?</summary><p>Нет. Результат помогает начать профессиональный разговор и требует контекстной проверки.</p></details><details><summary>Почему оценка может измениться?</summary><p>Разные темы, длина и стиль письма дают разные статистические сигналы.</p></details></article></div></section>
 
-					<div class="result-disclaimer"><i data-lucide="info"></i><span>Результат является ориентиром, а не доказательством авторства. Всегда учитывайте контекст и работу ученика.</span></div>
-
-					{% if analysis_id %}
-					<div class="feedback" data-analysis-id="{{ analysis_id }}">
-						<div class="feedback-copy"><span class="feedback-icon"><i data-lucide="message-circle-question"></i></span><div><strong>Помогите улучшить модель</strong><span>Как вы оцениваете происхождение этого текста?</span></div></div>
-						<div class="feedback-actions"><button type="button" class="feedback-btn" data-label="human">Человек</button><button type="button" class="feedback-btn" data-label="ai">AI</button><button type="button" class="feedback-btn" data-label="unsure">Не уверен</button></div>
-						<p class="feedback-status" aria-live="polite"></p>
-					</div>
-					{% endif %}
-				</section>
-				{% endif %}
-
-				{% if error %}
-				<div class="error-card" role="alert"><i data-lucide="alert-triangle"></i><span>{{ error }}</span></div>
-				{% endif %}
-			</main>
-
-			<footer class="site-footer"><span>AI Detector</span><span>Flask · scikit-learn · NLTK</span><span>Проект для 10 класса</span></footer>
+					<section class="dashboard-view" id="view-about" data-view="about" aria-labelledby="about-title"><div class="view-heading"><div><p class="eyebrow">О продукте</p><h1 id="about-title">AI Detector</h1><p>Понятный инструмент анализа текста для образовательной среды.</p></div></div><section class="panel about-panel"><div class="about-mark"><i data-lucide="scan-search"></i></div><div><p class="panel-overline">AI-powered text analysis</p><h2>Помогаем преподавателям видеть больше сигналов.</h2><p class="about-copy">AI Detector создан как учебный и исследовательский инструмент: он превращает сложный ML-анализ в спокойный, понятный рабочий процесс.</p></div><div class="about-meta"><span>Версия <strong>2.0</strong></span><span>Стек <strong>Flask · Python · scikit-learn · SQLite</strong></span><a href="https://github.com/AlekseyBulgarin/AI_detector" target="_blank" rel="noreferrer">GitHub <i data-lucide="arrow-up-right"></i></a></div></section></section>
+				</main>
+				<footer class="site-footer"><span>AI Detector</span><span>Проект для 10 класса</span><span>Для образовательных целей</span></footer>
+			</div>
 		</div>
-
 		<script src="https://unpkg.com/lucide@latest"></script>
 		<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 	</body>
