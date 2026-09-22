@@ -1,6 +1,6 @@
 # AI Text Detector
 
-https://ai-detector-br89.onrender.com/
+https://ai-detector-br89.onrender.com
 
 
 Веб-приложение для определения текстов, сгенерированных искусственным интеллектом (ChatGPT и др.). Проект выполнен для 9 класса.
