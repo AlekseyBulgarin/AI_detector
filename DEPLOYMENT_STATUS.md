@@ -16,7 +16,7 @@
 - Invalid JSON and invalid `text` values return HTTP 400.
 - SQLite creates its parent directory automatically.
 - Existing tests and feedback workflow remain available.
-- Admin review requires `ADMIN_TOKEN` in production; without it, the local admin page is intentionally open for development.
+- Admin review requires `ADMIN_TOKEN`; without a configured token `/admin/feedback` returns `403` and the review queue stays disabled in every environment.
 
 ## Missing or External
 

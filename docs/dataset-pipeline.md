@@ -43,6 +43,11 @@ data/manifests/<version>.json           metadata copy for the manifest store
 `data/datasets/` and `data/feedback/` are gitignored because they contain raw
 student text. The manifests are committed.
 
+When no `--dataset` version is supplied, `train_model.py --include-feedback`
+still trains on the raw corpus plus `data/feedback/approved/`. Prefer
+`--dataset` once a registry version exists: only the registry snapshot has a
+frozen split and quality warnings.
+
 ## Splitting
 
 `src/splitter.py` splits by **group**, not by row:

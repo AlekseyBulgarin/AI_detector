@@ -63,6 +63,8 @@
 5. Confirm the service logs contain successful model loading and startup events.
 6. Verify `/`, `/health`, `/api/check`, and `/api/feedback` on the deployed URL.
 7. Migrate feedback storage to PostgreSQL before relying on production feedback.
+8. Set a strong `ADMIN_TOKEN`; without it `/admin/feedback` returns `403` and no
+   feedback can be approved or exported.
 
 ## Render Configuration
 

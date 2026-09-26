@@ -12,6 +12,8 @@ data/raw/*.txt
 .DS_Store
 *.log
 data/feedback.db
+data/feedback.db-shm
+data/feedback.db-wal
 .playwright-mcp/
 
 # Generated dataset versions and feedback exports contain raw student text.
