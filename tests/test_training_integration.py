@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from train_model import load_training_records, parse_args
 
 
@@ -15,17 +17,26 @@ def test_training_defaults_to_original_data_only():
 
 
 def test_training_feedback_is_explicit_and_versioned():
-    args = parse_args(["--include-feedback", "--model-version", "phase2-v2", "--promote"])
+    args = parse_args(["--include-feedback", "--model-version", "phase2-v2"])
 
     assert args.include_feedback is True
     assert args.model_version == "phase2-v2"
-    assert args.promote is True
+    assert args.dataset is None
+
+
+def test_training_cannot_promote_a_model():
+    with pytest.raises(SystemExit) as excinfo:
+        parse_args(["--model-version", "v2", "--promote"])
+
+    assert excinfo.value.code == 2
 
 
 def test_versioned_model_metadata_contains_feedback_provenance():
     for version in ("v1", "v2"):
         assert (PROJECT_ROOT / "models" / f"model_{version}.pkl").exists()
-        metadata = json.loads((PROJECT_ROOT / "models" / f"metadata_{version}.json").read_text())
+        metadata = json.loads(
+            (PROJECT_ROOT / "models" / f"metadata_{version}.json").read_text()
+        )
         assert metadata["version"] == f"phase2-{version}"
         assert metadata["dataset_size"] >= metadata["feedback_samples"]
         assert "metrics" in metadata

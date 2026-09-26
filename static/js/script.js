@@ -74,13 +74,22 @@ function saveHistory() {
 		id: document.querySelector('.feedback')?.dataset.analysisId || `local-${Date.now()}`,
 		text: textarea.value.trim(),
 		probability: Number(resultCard.dataset.probability) || 0,
-		prediction: Number(resultCard.dataset.probability) > 65 ? 'ai' : Number(resultCard.dataset.probability) > 35 ? 'mixed' : 'human',
-		modelVersion: 'phase2-v1',
+		prediction: resultCard.dataset.band || 'uncertain',
+		modelVersion: resultCard.dataset.modelVersion || 'unknown',
 		createdAt: new Date().toISOString()
 	}
 	const history = getHistory().filter((entry) => entry.id !== item.id)
 	history.unshift(item)
 	localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 50)))
+}
+
+const bandTitles = {
+	ai_indicators: 'Признаки AI-текста',
+	uncertain: 'Зона неопределённости',
+	likely_human: 'Похоже на человеческий текст',
+	mixed: 'Смешанные сигналы',
+	ai: 'Высокая вероятность AI',
+	human: 'Человеческий стиль'
 }
 
 function formatDate(value) {
@@ -100,7 +109,7 @@ function renderHistory() {
 	}
 	list.innerHTML = history.map((item) => {
 		const score = Number(item.probability).toFixed(1)
-		const verdict = item.prediction === 'ai' || item.probability > 65 ? 'Высокая вероятность AI' : item.prediction === 'mixed' || item.probability > 35 ? 'Смешанные сигналы' : 'Человеческий стиль'
+		const verdict = bandTitles[item.prediction] || (item.probability > 65 ? bandTitles.ai : item.probability > 35 ? bandTitles.mixed : bandTitles.human)
 		return `<article class="history-item" data-history-id="${escapeHtml(item.id)}"><div class="history-icon"><i data-lucide="file-text"></i></div><div class="history-content"><strong>${escapeHtml(item.text.slice(0, 92))}${item.text.length > 92 ? '…' : ''}</strong><span>${formatDate(item.createdAt)} · ${verdict}</span></div><div class="history-score">${score}%</div><div class="history-actions"><button type="button" class="history-view" data-history-view="${escapeHtml(item.id)}">Открыть</button><button type="button" class="history-delete" data-history-delete="${escapeHtml(item.id)}" aria-label="Удалить анализ"><i data-lucide="trash-2"></i></button></div></article>`
 	}).join('')
 	initializeIcons()
@@ -221,8 +230,16 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (feedback) feedback.querySelectorAll('.feedback-btn').forEach((button) => button.addEventListener('click', async function () {
 		feedback.querySelectorAll('.feedback-btn').forEach((item) => { item.disabled = true })
 		button.classList.add('is-selected')
+		const confidence = document.querySelector('input[name="feedbackConfidence"]:checked')?.value || 'certain'
+		const payload = {
+			analysis_id: feedback.dataset.analysisId,
+			label: button.dataset.label,
+			allow_training: feedbackConsent?.checked === true,
+			user_confidence: confidence,
+			prediction_incorrect: document.getElementById('predictionIncorrect')?.checked === true
+		}
 		try {
-			const response = await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis_id: feedback.dataset.analysisId, label: button.dataset.label, allow_training: feedbackConsent?.checked === true }) })
+			const response = await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
 			if (!response.ok) throw new Error('feedback request failed')
 			feedback.querySelector('.feedback-status').textContent = 'Спасибо. Ваш отзыв помогает улучшать модель.'
 		} catch (error) {

@@ -13,3 +13,13 @@ data/raw/*.txt
 *.log
 data/feedback.db
 .playwright-mcp/
+
+# Generated dataset versions and feedback exports contain raw student text.
+data/datasets/
+data/feedback/
+data/raw/feedback/
+
+# Model registry artifacts (binaries stay local; reports are committed).
+models/candidates/
+models/production/
+models/archive/

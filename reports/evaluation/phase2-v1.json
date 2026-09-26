@@ -1,0 +1,193 @@
+{
+  "model_version": "phase2-v1",
+  "dataset_version": "original+approved-feedback-0",
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "confusion_matrix": [
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "true_negatives": 2,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "true_positives": 3,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0,
+    "samples": 5
+  },
+  "thresholds": {
+    "low": 0.3229,
+    "high": 0.7041,
+    "alpha": 0.05,
+    "source": "frozen_test_roc_recalibrated",
+    "samples": 5,
+    "calculated_at": "2026-09-26T16:56:39.225155+00:00"
+  },
+  "segments": {
+    "by_length": {
+      "100-249": {
+        "accuracy": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 1
+      },
+      "250-499": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 3,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 4
+      }
+    },
+    "by_topic": {
+      "unknown": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "true_negatives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 3,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 5
+      }
+    },
+    "by_source": {
+      "original": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "true_negatives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 3,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 5
+      }
+    },
+    "by_confidence": {
+      "0-35": {
+        "accuracy": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "true_negatives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 2
+      },
+      "65-85": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 0.0,
+        "confusion_matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "true_negatives": 0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 3,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 3
+      }
+    }
+  },
+  "split_summary": null,
+  "quality_warnings": [],
+  "sample_size_warning": "Frozen test set holds only 5 samples: metrics are directional and must not be presented as reliable accuracy."
+}

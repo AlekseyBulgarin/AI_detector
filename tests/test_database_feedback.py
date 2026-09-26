@@ -53,7 +53,7 @@ def test_feedback_rejects_invalid_label(tmp_path, monkeypatch):
     monkeypatch.setattr(database, "DATABASE_PATH", str(tmp_path / "feedback.db"))
     database.initialize_database()
 
-    with pytest.raises(ValueError, match="human, ai, or unsure"):
+    with pytest.raises(ValueError, match="human, ai, ai_assisted, or unsure"):
         record_feedback("analysis-id", "maybe")
 
 

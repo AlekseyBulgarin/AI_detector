@@ -202,6 +202,23 @@ textarea::placeholder { color: var(--faint); }
 .feedback-status { color: var(--success); font-size: 10px; grid-column: 1 / -1; }
 .feedback-consent { align-items: flex-start; color: var(--subtle); display: flex; font-size: 10px; gap: 7px; grid-column: 1 / -1; line-height: 1.45; }
 .feedback-consent input { accent-color: var(--foreground); margin-top: 1px; }
+.feedback-meta { display: flex; flex-wrap: wrap; gap: 14px; grid-column: 1 / -1; }
+.feedback-confidence { border: 0; display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
+.feedback-confidence legend { color: var(--subtle); float: left; font-size: 10px; margin-right: 8px; padding: 0; }
+.feedback-confidence label { align-items: center; color: var(--muted); display: inline-flex; font-size: 10px; gap: 5px; }
+.feedback-confidence input { accent-color: var(--foreground); }
+.feedback-consent { grid-column: auto; }
+.latency-row { align-items: center; color: var(--subtle); display: flex; flex-wrap: wrap; font-size: 10px; gap: 10px; justify-content: space-between; margin-top: 14px; }
+.latency-meta { color: var(--faint); }
+.verdict-meta { color: var(--subtle) !important; font-size: 10px !important; margin-top: 4px; }
+.threshold-scale { display: flex; font-size: 9px; margin-top: 8px; overflow: hidden; width: 100%; }
+.threshold-zone { align-items: center; color: var(--background); display: flex; font-size: 8px; height: 12px; justify-content: center; letter-spacing: .04em; min-width: 2px; text-transform: uppercase; }
+.threshold-zone > span { overflow: hidden; padding: 0 3px; white-space: nowrap; }
+.zone-human { background: color-mix(in srgb, var(--success) 65%, transparent); }
+.zone-uncertain { background: color-mix(in srgb, var(--warning) 75%, transparent); }
+.zone-ai { background: color-mix(in srgb, var(--danger) 65%, transparent); }
+.retention-toggle { align-items: center; color: var(--subtle); display: inline-flex; font-size: 10px; gap: 6px; }
+.retention-toggle input { accent-color: var(--foreground); }
 .error-card { align-items: center; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border)); border-radius: var(--radius-small); color: var(--danger); display: flex; font-size: 12px; gap: 9px; margin-top: 18px; padding: 13px; }
 .error-card svg { height: 16px; width: 16px; }
 

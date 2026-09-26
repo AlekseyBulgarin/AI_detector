@@ -1,0 +1,248 @@
+{
+  "model_version": "v3",
+  "dataset_version": "v2",
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "roc_auc": 1.0,
+    "confusion_matrix": [
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        3
+      ]
+    ],
+    "true_negatives": 2,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "true_positives": 3,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0,
+    "samples": 5
+  },
+  "thresholds": {
+    "low": 0.4153,
+    "high": 0.8054,
+    "alpha": 0.05,
+    "source": "validation_roc",
+    "samples": 6,
+    "calculated_at": "2026-09-26T16:47:43.645906+00:00"
+  },
+  "segments": {
+    "by_length": {
+      "100-249": {
+        "accuracy": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 1
+      },
+      "250-499": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 3,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 4
+      }
+    },
+    "by_topic": {
+      "unknown": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "true_negatives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 3,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 5
+      }
+    },
+    "by_source": {
+      "raw": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "true_negatives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 3,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 5
+      }
+    },
+    "by_confidence": {
+      "0-35": {
+        "accuracy": 1.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 1
+      },
+      "35-65": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 1,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 2
+      },
+      "65-85": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "roc_auc": 0.0,
+        "confusion_matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "true_negatives": 0,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 2,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "samples": 2
+      }
+    }
+  },
+  "split_summary": {
+    "counts": {
+      "train": 24,
+      "validation": 6,
+      "frozen_test": 5
+    },
+    "by_label": {
+      "train": {
+        "human": 11,
+        "ai": 13
+      },
+      "validation": {
+        "human": 3,
+        "ai": 3
+      },
+      "frozen_test": {
+        "human": 2,
+        "ai": 3
+      }
+    },
+    "group_count": 35,
+    "proportions": {
+      "train": 0.7,
+      "validation": 0.15,
+      "frozen_test": 0.15
+    },
+    "feedback_in_frozen_test": false,
+    "source": "dataset_manifest"
+  },
+  "quality_warnings": [
+    "HIGH LENGTH LEAKAGE",
+    "TOPIC LEAKAGE"
+  ],
+  "sample_size_warning": "Frozen test set holds only 5 samples: metrics are directional and must not be presented as reliable accuracy."
+}

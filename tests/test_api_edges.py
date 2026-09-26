@@ -146,21 +146,53 @@ def test_feedback_api_returns_duplicate_and_preserves_consent():
     assert second.get_json()["status"] == "duplicate"
 
 
-def test_admin_feedback_page_and_review_action_work_without_configured_token():
+def test_admin_feedback_requires_a_configured_token(monkeypatch):
+    monkeypatch.delenv("ADMIN_TOKEN", raising=False)
     client = application.app.test_client()
+
+    page = client.get("/admin/feedback")
+    review = client.post("/admin/feedback/1", json={"status": "approved"})
+
+    assert page.status_code == 403
+    assert review.status_code == 403
+
+
+def test_admin_feedback_queue_and_review_action(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "test-admin-token")
+    headers = {"X-Admin-Token": "test-admin-token"}
+    client = application.app.test_client()
+
     text = f"This is an admin review sample {uuid.uuid4()} with enough text."
     analysis = client.post("/api/check", json={"text": text}).get_json()
     feedback = client.post(
         "/api/feedback",
         json={"analysis_id": analysis["analysis_id"], "label": "human", "allow_training": True},
     ).get_json()
+
+    unauthenticated = client.get("/admin/feedback")
     review = client.post(
         f"/admin/feedback/{feedback['feedback_id']}",
         json={"status": "approved"},
+        headers=headers,
     )
-    page = client.get("/admin/feedback")
+    approved = client.get("/admin/feedback?filter=approved", headers=headers)
+    body = approved.get_data(as_text=True)
 
-    assert page.status_code == 200
+    assert unauthenticated.status_code == 401
     assert review.status_code == 200
     assert review.get_json()["status"] == "approved"
-    assert "Feedback review" in page.get_data(as_text=True)
+    assert approved.status_code == 200
+    assert "Feedback review" in body
+    assert f"#{feedback['feedback_id']}" in body
+
+
+def test_admin_feedback_filters_expose_hard_case_queues(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "test-admin-token")
+    headers = {"X-Admin-Token": "test-admin-token"}
+    client = application.app.test_client()
+
+    for filter_name in ("all", "pending", "high_disagreement", "false_positives",
+                        "false_negatives", "ai_assisted", "approved", "rejected"):
+        response = client.get(f"/admin/feedback?filter={filter_name}", headers=headers)
+        assert response.status_code == 200, filter_name
+

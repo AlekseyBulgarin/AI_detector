@@ -7,7 +7,10 @@ VALID_TEXT = "Это достаточно длинный текст для пр�
 
 
 def test_validator_accepts_valid_label_and_consent():
-    assert validate_feedback(VALID_TEXT, "human", True) is True
+    stats = validate_feedback(VALID_TEXT, "human", True)
+
+    assert stats["words"] > 0
+    assert stats["characters"] == len(VALID_TEXT)
 
 
 @pytest.mark.parametrize(
@@ -15,7 +18,7 @@ def test_validator_accepts_valid_label_and_consent():
     [
         ("", "human", False, "empty"),
         ("коротко", "human", False, "short"),
-        (VALID_TEXT, "unknown", False, "human, ai, or unsure"),
+            (VALID_TEXT, "unknown", False, "human, ai, ai_assisted, or unsure"),
         ("x" * 40, "ai", False, "repetitive"),
         (VALID_TEXT, "ai", "yes", "boolean"),
     ],

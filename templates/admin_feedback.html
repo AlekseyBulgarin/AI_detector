@@ -1,24 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Detector | Feedback Review</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .admin-page { margin: 0 auto; max-width: 1100px; padding: 42px 24px; }
-        .admin-header { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 24px; }
+        .admin-page { margin: 0 auto; max-width: 1240px; padding: 42px 24px; }
+        .admin-header { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 20px; }
         .admin-header p, .admin-empty, .admin-login p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+        .admin-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+        .admin-filters a { border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 11px; padding: 6px 12px; text-decoration: none; text-transform: capitalize; }
+        .admin-filters a.is-active { background: var(--foreground); border-color: var(--foreground); color: var(--accent-contrast); }
+        .admin-stats { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: 20px; }
+        .admin-stat { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+        .admin-stat span { color: var(--subtle); display: block; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+        .admin-stat strong { display: block; font-size: 20px; margin-top: 6px; }
         .admin-table { overflow-x: auto; }
-        table { border-collapse: collapse; min-width: 800px; width: 100%; }
+        table { border-collapse: collapse; min-width: 940px; width: 100%; }
         th, td { border-bottom: 1px solid var(--border); padding: 14px 12px; text-align: left; vertical-align: top; }
         th { color: var(--subtle); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
         td { color: var(--muted); font-size: 12px; }
         td strong { color: var(--foreground); display: block; font-weight: 600; margin-bottom: 5px; }
-        .admin-preview { max-width: 360px; white-space: pre-wrap; }
+        .admin-preview { max-width: 420px; white-space: pre-wrap; }
+        .admin-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .admin-tag { background: var(--surface, rgba(255,255,255,.05)); border: 1px solid var(--border-light); border-radius: 999px; color: var(--muted); font-size: 10px; padding: 2px 7px; }
+        .admin-tag.is-flag { border-color: var(--danger); color: var(--danger); }
         .admin-actions { display: flex; flex-wrap: wrap; gap: 5px; }
         .admin-actions button, .admin-login button { background: var(--foreground); border: 1px solid var(--foreground); border-radius: 6px; color: var(--accent-contrast); cursor: pointer; font-size: 11px; padding: 7px 10px; }
-        .admin-actions button[data-status="rejected"], .admin-actions button[data-status="duplicate"] { background: transparent; border-color: var(--border-light); color: var(--muted); }
+        .admin-actions button[data-status="rejected"], .admin-actions button[data-status="duplicate"], .admin-actions button[data-status="invalid"], .admin-actions button[data-status="needs_review"] { background: transparent; border-color: var(--border-light); color: var(--muted); }
         .admin-login { margin: 16vh auto; max-width: 420px; }
         .admin-login form { display: flex; gap: 8px; margin-top: 18px; }
         .admin-login input { background: var(--background); border: 1px solid var(--border); border-radius: 6px; color: var(--foreground); min-width: 0; padding: 9px 10px; width: 100%; }
@@ -26,13 +36,20 @@
     </style>
 </head>
 <body>
-{% if login_required or login_error %}
+{% if disabled %}
+    <main class="admin-page admin-login panel">
+        <p class="eyebrow">AI Detector</p>
+        <h1>Feedback review</h1>
+        <p class="admin-error">Admin access is disabled because <code>ADMIN_TOKEN</code> is not configured on this deployment.</p>
+        <p>Set the <code>ADMIN_TOKEN</code> environment variable and restart the service to open the review queue.</p>
+    </main>
+{% elif login_required or login_error %}
     <main class="admin-page admin-login panel">
         <p class="eyebrow">AI Detector</p>
         <h1>Feedback review</h1>
         <p>Enter the admin token configured in <code>ADMIN_TOKEN</code>.</p>
         {% if login_error %}<p class="admin-error">Invalid admin token.</p>{% endif %}
-        <form method="post">
+        <form method="post" action="{{ url_for('admin_login') }}">
             <label class="sr-only" for="token">Admin token</label>
             <input id="token" name="token" type="password" autocomplete="current-password" required>
             <button type="submit">Sign in</button>
@@ -41,27 +58,61 @@
 {% else %}
     <main class="admin-page">
         <header class="admin-header">
-            <div><p class="eyebrow">Human feedback learning loop</p><h1>Feedback review</h1><p>Approve only trusted, consented labels before exporting them for retraining.</p></div>
+            <div>
+                <p class="eyebrow">Human feedback learning loop</p>
+                <h1>Feedback review</h1>
+                <p>Approve only trusted, consented labels before exporting them for retraining. Review never changes the production model.</p>
+            </div>
             <a class="text-button" href="{{ url_for('index') }}">Back to app</a>
         </header>
+
+        {% if stats %}
+        <section class="admin-stats" aria-label="Production statistics">
+            <div class="admin-stat"><span>Feedback total</span><strong>{{ stats.feedback_total }}</strong></div>
+            <div class="admin-stat"><span>Pending review</span><strong>{{ stats.feedback_pending }}</strong></div>
+            <div class="admin-stat"><span>Disagreement rate</span><strong>{{ '%.1f'|format(stats.model_disagreement_rate * 100) }}%</strong></div>
+            <div class="admin-stat"><span>FP candidates</span><strong>{{ stats.false_positive_candidates }}</strong></div>
+            <div class="admin-stat"><span>FN candidates</span><strong>{{ stats.false_negative_candidates }}</strong></div>
+            <div class="admin-stat"><span>Avg latency</span><strong>{{ '%.1f'|format(stats.average_latency_ms) }} ms</strong></div>
+        </section>
+        {% endif %}
+
+        <nav class="admin-filters" aria-label="Очередь проверки">
+            {% for name in filters %}
+            <a href="{{ url_for('admin_feedback', filter=name) }}" class="{{ 'is-active' if name == active_filter else '' }}">{{ name.replace('_', ' ') }}</a>
+            {% endfor %}
+        </nav>
+
         {% if feedback %}
-        <section class="panel admin-table" aria-label="Pending feedback">
+        <section class="panel admin-table" aria-label="Feedback queue">
             <table>
-                <thead><tr><th>Text preview</th><th>Model</th><th>User label</th><th>Consent</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Text preview</th><th>Model</th><th>User label</th><th>Priority</th><th>Consent</th><th>Actions</th></tr></thead>
                 <tbody>
                 {% for item in feedback %}
                 <tr>
-                    <td class="admin-preview"><strong>#{{ item.id }} · {{ item.created_at }}</strong>{{ item.text_content[:500] if item.text_content else 'Text unavailable from legacy record.' }}</td>
+                    <td class="admin-preview">
+                        <strong>#{{ item.id }} · {{ item.created_at }}</strong>
+                        {{ item.text_content[:500] if item.text_content else 'Text unavailable: raw text was not retained for this analysis.' }}
+                    </td>
                     <td>{{ item.prediction_label }}<br>{{ '%.1f'|format(item.prediction_probability) }}%<br>{{ item.model_version }}</td>
-                    <td><strong>{{ item.user_label }}</strong>{{ item.status }}</td>
+                    <td>
+                        <strong>{{ item.user_label }}</strong>
+                        {{ item.status }}{% if item.user_confidence %} · {{ item.user_confidence }}{% endif %}
+                        {% if item.validation_flags %}<div class="admin-tags">{% for flag in item.validation_flags %}<span class="admin-tag is-flag">{{ flag }}</span>{% endfor %}</div>{% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ item.priority_category }}</strong>
+                        score {{ '%.0f'|format(item.priority_score) }}
+                        <div class="admin-tags">{% for cat in item.hard_case_categories %}<span class="admin-tag">{{ cat }}</span>{% endfor %}</div>
+                    </td>
                     <td>{{ 'Allowed' if item.allow_training else 'Not allowed' }}</td>
-                    <td><div class="admin-actions">{% for status in ('approved', 'rejected', 'duplicate') %}<form method="post" action="{{ url_for('admin_review_feedback', feedback_id=item.id) }}"><input type="hidden" name="status" value="{{ status }}"><button data-status="{{ status }}" type="submit">{{ status|capitalize }}</button></form>{% endfor %}</div></td>
+                    <td><div class="admin-actions">{% for status in ('approved', 'rejected', 'duplicate', 'invalid', 'needs_review') %}<form method="post" action="{{ url_for('admin_review_feedback', feedback_id=item.id) }}"><input type="hidden" name="status" value="{{ status }}"><input type="hidden" name="filter" value="{{ active_filter }}"><button data-status="{{ status }}" type="submit">{{ status|capitalize }}</button></form>{% endfor %}</div></td>
                 </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </section>
-        {% else %}<section class="panel admin-empty" style="padding: 36px;">No pending feedback is waiting for review.</section>{% endif %}
+        {% else %}<section class="panel admin-empty" style="padding: 36px;">Nothing is waiting for review in this queue.</section>{% endif %}
     </main>
 {% endif %}
 </body>

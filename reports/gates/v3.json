@@ -1,0 +1,88 @@
+{
+  "generated_at": "2026-09-26T17:01:15.922009+00:00",
+  "passed": true,
+  "policy": {
+    "f1_delta_min": -0.02,
+    "false_positive_rate_delta_max": 0.02,
+    "false_negative_rate_delta_max": 0.02,
+    "roc_auc_delta_min": -0.02
+  },
+  "gates": [
+    {
+      "gate": "candidate_evaluation_present",
+      "passed": true,
+      "detail": "Frozen test metrics are available"
+    },
+    {
+      "gate": "frozen_test_non_empty",
+      "passed": true,
+      "detail": "5 frozen test samples"
+    },
+    {
+      "gate": "no_regression_f1",
+      "passed": true,
+      "detail": "f1: 1.0000 -> 1.0000 (delta +0.0000, limit f1_delta_min=-0.02)"
+    },
+    {
+      "gate": "no_regression_roc_auc",
+      "passed": true,
+      "detail": "roc_auc: 1.0000 -> 1.0000 (delta +0.0000, limit roc_auc_delta_min=-0.02)"
+    },
+    {
+      "gate": "no_regression_false_positive_rate",
+      "passed": true,
+      "detail": "false_positive_rate: 0.0000 -> 0.0000 (delta +0.0000, limit false_positive_rate_delta_max=0.02)"
+    },
+    {
+      "gate": "no_regression_false_negative_rate",
+      "passed": true,
+      "detail": "false_negative_rate: 0.0000 -> 0.0000 (delta +0.0000, limit false_negative_rate_delta_max=0.02)"
+    },
+    {
+      "gate": "model_loads",
+      "passed": true,
+      "detail": "candidate pipeline loaded"
+    },
+    {
+      "gate": "regression_tests",
+      "passed": true,
+      "detail": "85 passed in 4.94s"
+    },
+    {
+      "gate": "data_leakage_checks",
+      "passed": true,
+      "detail": "leakage acknowledged explicitly: HIGH LENGTH LEAKAGE, TOPIC LEAKAGE"
+    },
+    {
+      "gate": "api_smoke_tests",
+      "passed": true,
+      "detail": "health and prediction smoke checks passed"
+    }
+  ],
+  "comparisons": {
+    "f1": {
+      "production": 1.0,
+      "candidate": 1.0,
+      "delta": 0.0
+    },
+    "roc_auc": {
+      "production": 1.0,
+      "candidate": 1.0,
+      "delta": 0.0
+    },
+    "false_positive_rate": {
+      "production": 0.0,
+      "candidate": 0.0,
+      "delta": 0.0
+    },
+    "false_negative_rate": {
+      "production": 0.0,
+      "candidate": 0.0,
+      "delta": 0.0
+    }
+  },
+  "failed_gates": [],
+  "requires_manual_promotion": true,
+  "candidate": "v3",
+  "production_before": "phase2-v1"
+}

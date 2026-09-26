@@ -1,102 +1,243 @@
 {
-  "total_samples": 38,
+  "total_samples": 35,
   "samples_per_class": {
-    "human": 19,
+    "human": 16,
     "ai": 19
   },
   "statistics": {
     "characters": {
-      "count": 38,
+      "count": 35,
       "min": 66,
       "max": 497,
-      "mean": 320.08,
-      "median": 400.0
+      "mean": 330.03,
+      "median": 403,
+      "std": 141.93
     },
     "words": {
-      "count": 38,
+      "count": 35,
       "min": 8,
       "max": 83,
-      "mean": 50.11,
-      "median": 58.5
+      "mean": 51.74,
+      "median": 64,
+      "std": 22.79
     },
     "sentences": {
-      "count": 38,
+      "count": 35,
       "min": 1,
       "max": 12,
-      "mean": 6.39,
-      "median": 7.0
-    },
-    "by_class": {
-      "human": {
-        "characters": {
-          "count": 19,
+      "mean": 6.66,
+      "median": 8,
+      "std": 3.54
+    }
+  },
+  "duplicates": {
+    "exact": [],
+    "normalized": []
+  },
+  "validation_errors": [],
+  "quality_gates": {
+    "generated_at": "2026-09-26T16:41:41.154233+00:00",
+    "total_samples": 35,
+    "feedback_samples": 0,
+    "gates": [
+      {
+        "gate": "valid_encoding",
+        "passed": true,
+        "checked": 35,
+        "failed": 0,
+        "blocking": true,
+        "details": []
+      },
+      {
+        "gate": "valid_label",
+        "passed": true,
+        "checked": 35,
+        "failed": 0,
+        "blocking": true,
+        "details": []
+      },
+      {
+        "gate": "sufficient_length",
+        "passed": true,
+        "checked": 35,
+        "failed": 0,
+        "blocking": true,
+        "details": []
+      },
+      {
+        "gate": "consent",
+        "passed": true,
+        "checked": 0,
+        "failed": 0,
+        "blocking": true,
+        "details": []
+      },
+      {
+        "gate": "approved_review_status",
+        "passed": true,
+        "checked": 0,
+        "failed": 0,
+        "blocking": true,
+        "details": []
+      },
+      {
+        "gate": "exact_duplicate",
+        "passed": true,
+        "checked": 35,
+        "failed": 0,
+        "blocking": true,
+        "details": []
+      },
+      {
+        "gate": "near_duplicate",
+        "passed": true,
+        "checked": 35,
+        "failed": 0,
+        "blocking": true,
+        "details": []
+      },
+      {
+        "gate": "source_metadata",
+        "passed": true,
+        "checked": 35,
+        "failed": 0,
+        "blocking": false,
+        "details": []
+      }
+    ],
+    "blocking_failures": [],
+    "passed": true
+  },
+  "bias_analysis": {
+    "distributions": {
+      "characters": {
+        "human": {
+          "count": 16,
           "min": 66,
           "max": 497,
-          "mean": 208.53,
-          "median": 215
+          "mean": 209.38,
+          "median": 187.0,
+          "std": 128.82
         },
-        "words": {
-          "count": 19,
-          "min": 8,
-          "max": 73,
-          "mean": 31,
-          "median": 33
-        },
-        "sentences": {
-          "count": 19,
-          "min": 1,
-          "max": 6,
-          "mean": 3.11,
-          "median": 3
-        }
-      },
-      "ai": {
-        "characters": {
+        "ai": {
           "count": 19,
           "min": 392,
           "max": 474,
           "mean": 431.63,
-          "median": 434
+          "median": 434,
+          "std": 23.53
         },
-        "words": {
+        "ratio": 2.062,
+        "effect_size_d": 1.566
+      },
+      "words": {
+        "human": {
+          "count": 16,
+          "min": 8,
+          "max": 73,
+          "mean": 31,
+          "median": 29.5,
+          "std": 17.44
+        },
+        "ai": {
           "count": 19,
           "min": 56,
           "max": 83,
           "mean": 69.21,
-          "median": 69
+          "median": 69,
+          "std": 5.75
         },
-        "sentences": {
+        "ratio": 2.233,
+        "effect_size_d": 1.677
+      },
+      "sentences": {
+        "human": {
+          "count": 16,
+          "min": 1,
+          "max": 6,
+          "mean": 3.06,
+          "median": 3.0,
+          "std": 1.43
+        },
+        "ai": {
           "count": 19,
           "min": 8,
           "max": 12,
           "mean": 9.68,
-          "median": 10
-        }
+          "median": 10,
+          "std": 1.13
+        },
+        "ratio": 3.162,
+        "effect_size_d": 1.872
       }
-    }
-  },
-  "duplicates": {
-    "exact": [
-      [
-        "data\\raw\\human\\12.txt",
-        "data\\raw\\human\\19.txt"
-      ],
-      [
-        "data\\raw\\human\\15.txt",
-        "data\\raw\\human\\20.txt"
-      ]
-    ],
-    "normalized": [
-      [
-        "data\\raw\\human\\12.txt",
-        "data\\raw\\human\\17.txt",
-        "data\\raw\\human\\19.txt"
-      ],
-      [
-        "data\\raw\\human\\15.txt",
-        "data\\raw\\human\\20.txt"
-      ]
+    },
+    "class_balance": {
+      "human": 16,
+      "ai": 19
+    },
+    "style": {
+      "sentence_length": {
+        "human": [
+          53.0,
+          108.5,
+          76.0,
+          85.0,
+          119.5,
+          39.5,
+          35.83,
+          53.0,
+          66.0,
+          73.0,
+          26.67,
+          35.5,
+          86.33,
+          82.83,
+          104.67,
+          55.5
+        ],
+        "ai": [
+          58.62,
+          40.3,
+          54.12,
+          39.2,
+          37.09,
+          42.6,
+          44.3,
+          44.11,
+          35.25,
+          37.45,
+          50.78,
+          44.78,
+          50.11,
+          40.36,
+          41.09,
+          54.88,
+          48.22,
+          44.1,
+          52.67
+        ]
+      }
+    },
+    "metadata_coverage": {
+      "source": 1.0,
+      "topic": 0.0,
+      "author": 0.0,
+      "prompt": 0.0,
+      "generation_session": 0.0
+    },
+    "warnings": [
+      {
+        "warning": "HIGH LENGTH LEAKAGE",
+        "detail": "AI mean words 69.21 vs human 31 (ratio 2.233, Cohen's d 1.677). The detector may learn 'long text = AI'."
+      },
+      {
+        "warning": "TOPIC LEAKAGE",
+        "detail": "topic metadata unavailable (coverage 0.0)."
+      }
     ]
   },
-  "validation_errors": []
+  "warnings": [
+    "HIGH LENGTH LEAKAGE",
+    "TOPIC LEAKAGE"
+  ]
 }
