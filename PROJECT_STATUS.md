@@ -2,22 +2,22 @@
 
 ## Current Phase
 
-Human-in-the-loop ML improvement platform (Milestones A-G) is implemented locally.
-Phase 2 baseline behavior is preserved.
+Explainable rule-based review engine is active in production. Historical ML
+experiments remain available for research only and are not loaded by the app.
 
 ## Frontend Status
 
 - Responsive teacher-oriented dashboard is implemented in the existing Flask template.
 - Analysis history and interface preferences use browser `localStorage` by design.
-- Results now show a three-way decision, threshold zones, model/dataset version, confidence and per-stage latency.
+- Results show an index of review signals, its explanation, version and per-stage latency; they never claim authorship.
 - Feedback controls include label, confidence, training consent and a "prediction is incorrect" flag.
 - A retention toggle lets a teacher opt out of storing the analyzed text.
 
 ## Performance Status
 
-- Cold local `import app` improved from approximately 4,449ms to 1,934ms by removing unconditional NLTK downloader work.
-- Warm prediction remains in the single-digit millisecond range and is below the 500ms local target.
-- Repeated text uses a model-version-aware bounded cache and indexed SQLite lookup.
+- The production rule engine has no model load and no external inference request.
+- Warm analysis remains in the single-digit millisecond range and is below the 500ms local target.
+- Repeated text uses a bounded in-process cache that retains the complete explanation.
 - Request timings are emitted as structured logs, and `/api/check` returns `feature_ms`, `prediction_ms`, `model_total_ms`, `db_write_ms` and `latency_ms`.
 - Detailed measurements and caveats are documented in `reports/performance_audit.md` and `reports/performance_before_after.md`.
 
@@ -46,7 +46,14 @@ Phase 2 baseline behavior is preserved.
 - Known warnings recorded in every manifest: `HIGH LENGTH LEAKAGE`, `TOPIC LEAKAGE`.
 - Details: `docs/dataset-pipeline.md`.
 
-## ML Status
+## Analysis-engine Status
+
+- Production engine: `rule-ensemble-v1`, with no trained dataset.
+- Short texts (under 100 words or 600 characters) and list-heavy text abstain with "insufficient data".
+- A review signal needs corroboration from multiple independent groups; a single stylistic quirk cannot yield a high result.
+- API returns individual signals and a `signal_index`; the legacy `probability` field is retained only for API compatibility and contains the same index.
+
+## Historical ML Status
 
 - Candidate models: baseline, word TF-IDF, character TF-IDF, combined.
 - Selected local model: combined pipeline, production `phase2-v1`.

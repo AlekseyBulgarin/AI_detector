@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Replaced production TF-IDF inference with the deterministic `rule-ensemble-v1`.
+- Added conservative short-text and list-heavy abstention rules.
+- Added explainable signals to the API and result screen.
+- Reframed the score as a review-signal index, never an AI authorship probability.
+
 ## HITL ML Improvement Platform
 
 - Added a central privacy policy separating per-prediction retention (`store_text`) from training consent (`allow_training`), with export requiring approved status, consent, retained text and a `human`/`ai` label.

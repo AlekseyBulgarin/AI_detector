@@ -30,11 +30,7 @@ def test_api_check_exposes_decision_timing_and_retention(tmp_path, monkeypatch):
 
     payload = response.get_json()
     assert response.status_code == 200
-    assert payload["decision"]["band"] in {
-        "likely_human",
-        "uncertain",
-        "ai_indicators",
-    }
+    assert payload["decision"]["band"] in {"insufficient", "uncertain", "ai_indicators"}
     assert payload["decision"]["limitation"]
     assert payload["store_text"] is True
     assert payload["timing"]["feature_ms"] is not None
@@ -43,6 +39,8 @@ def test_api_check_exposes_decision_timing_and_retention(tmp_path, monkeypatch):
     assert payload["timing"]["db_write_ms"] is not None
     assert payload["latency_ms"] >= 0
     assert payload["model_version"]
+    assert payload["signal_index"] == payload["probability"]
+    assert isinstance(payload["signals"], list)
 
 
 def test_api_check_honours_store_text_false(tmp_path, monkeypatch):

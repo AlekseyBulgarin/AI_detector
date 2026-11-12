@@ -4,25 +4,21 @@ from time import perf_counter
 
 from flask import Flask, g, jsonify, redirect, render_template, request, url_for
 import os
-import joblib
-import json
 import logging
-import sklearn
 import hmac
 from datetime import datetime, timezone
 
-from src.config import FLASK_ENV, MODEL_METADATA_PATH, MODEL_PATH, STATIC_CACHE_SECONDS
+from src.config import FLASK_ENV, STATIC_CACHE_SECONDS
 from src.database import (
     AnalysisNotFoundError,
-    find_analysis_by_hash,
     initialize_database,
     list_feedback,
     update_feedback_status,
 )
-from src.decision import classify as decide
+from src.decision import from_assessment
 from src.feedback import record_analysis, submit_feedback
 from src.feedback_validator import FeedbackValidationError
-from src.features import extract_features
+from src.signals import analyze as analyze_signals
 from src.monitoring import compute_production_stats
 from src.privacy import VALID_CONFIDENCE, VALID_USER_LABELS, should_store_text
 from src.versions import DEFAULT_DATASET_VERSION, FEATURE_VERSION
@@ -45,39 +41,10 @@ def _admin_token():
     return os.environ.get("ADMIN_TOKEN", "").strip()
 
 
-model = None
-model_version = "legacy"
+model = "rule-engine"
+model_version = "rule-ensemble-v1"
 model_load_error = None
 model_load_ms = 0.0
-
-model_load_started = perf_counter()
-if MODEL_METADATA_PATH.exists():
-    try:
-        with MODEL_METADATA_PATH.open("r", encoding="utf-8") as file:
-            model_metadata = json.load(file)
-            model_version = model_metadata.get("model_version", model_version)
-            expected_sklearn = model_metadata.get("sklearn_version")
-            if expected_sklearn and expected_sklearn != sklearn.__version__:
-                logger.warning(
-                    "Model was trained with scikit-learn %s; runtime has %s",
-                    expected_sklearn,
-                    sklearn.__version__,
-                )
-    except (OSError, json.JSONDecodeError) as exc:
-        logger.warning("Could not read model metadata: %s", exc)
-
-if MODEL_PATH.exists():
-    logger.info("event=model_loading path=%s", MODEL_PATH)
-    try:
-        model = joblib.load(MODEL_PATH)
-        model_load_ms = round((perf_counter() - model_load_started) * 1000, 3)
-        logger.info("event=model_loaded version=%s", model_version)
-    except Exception as exc:
-        model_load_error = str(exc)
-        logger.exception("Model could not be loaded")
-else:
-    model_load_error = "Model artifact is missing"
-    logger.error("event=model_missing path=%s", MODEL_PATH)
 
 logger.info(
     "event=application_started environment=%s model_available=%s load_ms=%.3f",
@@ -112,34 +79,15 @@ def _elapsed_ms(started):
 
 
 def predict_probability(text):
-    """Возвращает вероятность того, что текст написан ИИ (0-100)"""
-    if model is None:
-        raise RuntimeError(model_load_error or "Model is unavailable")
-
+    """Return the rule-signal index (kept for backwards-compatible API fields)."""
     _LAST_TIMING.clear()
-    if hasattr(model, "named_steps") and "prepare" in model.named_steps:
-        started = perf_counter()
-        frame = model.named_steps["prepare"].transform([text])
-        matrix = model.named_steps["features"].transform(frame)
-        feature_ms = _elapsed_ms(started)
-        started = perf_counter()
-        prob = model.named_steps["classifier"].predict_proba(matrix)[0][1]
-        prediction_ms = _elapsed_ms(started)
-    else:
-        started = perf_counter()
-        features = extract_features(text)
-        feature_ms = _elapsed_ms(started)
-        started = perf_counter()
-        prob = model.predict_proba([features])[0][1]
-        prediction_ms = _elapsed_ms(started)
-
-    _LAST_TIMING["feature_ms"] = feature_ms
-    _LAST_TIMING["prediction_ms"] = prediction_ms
-    return round(prob * 100, 1)
-
-
-def prediction_label(probability):
-    return "ai" if probability >= 50 else "human"
+    started = perf_counter()
+    assessment = analyze_signals(text)
+    signal_ms = _elapsed_ms(started)
+    _LAST_TIMING["feature_ms"] = signal_ms
+    _LAST_TIMING["prediction_ms"] = 0.0
+    _LAST_TIMING["assessment"] = assessment
+    return assessment["score"]
 
 
 def _analysis_cache_key(text):
@@ -154,36 +102,14 @@ def _remember_analysis(cache_key, analysis):
         analysis_cache.popitem(last=False)
 
 
-def _payload_from_row(row):
-    probability = round(float(row["probability"]), 1)
-    return {
-        "id": row["id"],
-        "analysis_id": row["id"],
-        "prediction": row["prediction"],
-        "probability": probability,
-        "model_version": row["model_version"],
-        "dataset_version": row.get("dataset_version") or DEFAULT_DATASET_VERSION,
-        "feature_version": row.get("feature_version") or FEATURE_VERSION,
-        "decision": decide(probability),
-        "reused": True,
-    }
-
-
 def analyze_text(text, store_text=None):
-    """Reuse recent or persisted results before running model inference."""
+    """Reuse the in-process result, preserving its full signal explanation."""
     effective_store = should_store_text(store_text)
     cache_key = _analysis_cache_key(text)
     cached = analysis_cache.get(cache_key)
     if cached is not None:
         analysis_cache.move_to_end(cache_key)
         return dict(cached)
-
-    _, text_hash = cache_key
-    persisted = find_analysis_by_hash(text_hash, model_version)
-    if persisted is not None:
-        reused = _payload_from_row(persisted)
-        _remember_analysis(cache_key, reused)
-        return dict(reused)
 
     _LAST_TIMING.clear()
     prediction_started = perf_counter()
@@ -193,11 +119,15 @@ def analyze_text(text, store_text=None):
         "prediction_ms": None,
     }
     model_stage_ms["model_total_ms"] = _elapsed_ms(prediction_started)
+    assessment = model_stage_ms.pop("assessment", None) or {
+        "status": "insufficient", "score": probability, "signals": [], "stats": {}, "reason": "Результат анализа недоступен."
+    }
+    decision = from_assessment(assessment)
 
     db_started = perf_counter()
     analysis_id = record_analysis(
         text,
-        prediction_label(probability),
+        decision["band"],
         probability,
         model_version,
         DEFAULT_DATASET_VERSION,
@@ -210,12 +140,14 @@ def analyze_text(text, store_text=None):
     analysis = {
         "id": analysis_id,
         "analysis_id": analysis_id,
-        "prediction": prediction_label(probability),
+        "prediction": decision["band"],
         "probability": probability,
         "model_version": model_version,
         "dataset_version": DEFAULT_DATASET_VERSION,
         "feature_version": FEATURE_VERSION,
-        "decision": decide(probability),
+        "decision": decision,
+        "signals": assessment["signals"],
+        "stats": assessment["stats"],
         "store_text": effective_store,
         "reused": False,
         "timing": {
@@ -354,12 +286,15 @@ def api_check():
 
     payload = {
         "probability": analysis["probability"],
+        "signal_index": analysis["probability"],
         "analysis_id": analysis["id"],
         "prediction": analysis["prediction"],
         "model_version": analysis["model_version"],
         "dataset_version": analysis["dataset_version"],
         "feature_version": analysis["feature_version"],
         "decision": analysis["decision"],
+        "signals": analysis.get("signals", []),
+        "text_stats": analysis.get("stats", {}),
         "reused": analysis["reused"],
         "store_text": analysis.get("store_text", should_store_text(store_text)),
         "timing": analysis.get("timing"),

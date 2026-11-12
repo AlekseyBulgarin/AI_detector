@@ -122,3 +122,42 @@ def classify(probability, thresholds=None):
             "доказательство использования ИИ."
         ),
     }
+
+
+def from_assessment(assessment):
+    """Translate explainable rule signals into teacher-facing wording."""
+    status = assessment.get("status")
+    score = int(assessment.get("score", 0))
+    if status == "insufficient":
+        return {
+            "band": "insufficient",
+            "title": "Недостаточно данных для оценки",
+            "description": assessment.get("reason") or "Формат текста не подходит для стилометрической оценки.",
+            "risk": "medium",
+            "confidence": "low",
+            "confidence_margin": 0,
+            "probability": score,
+            "thresholds": {"low": 35, "high": 55, "source": "rule_ensemble"},
+            "limitation": LIMITATIONS,
+            "warning": "Сервис не устанавливает авторство и не должен использоваться для обвинений.",
+        }
+    if status == "review":
+        title = "Есть несколько сигналов для проверки"
+        description = "Несколько независимых групп признаков совпали. Проверьте процесс подготовки работы и контекст задания."
+        band, risk = AI_INDICATORS, "high"
+    else:
+        title = "Сигналы смешанные или слабые"
+        description = "Отдельные особенности текста не образуют надёжного основания для вывода."
+        band, risk = UNCERTAIN, "medium"
+    return {
+        "band": band,
+        "title": title,
+        "description": description,
+        "risk": risk,
+        "confidence": "low" if score < 75 else "medium",
+        "confidence_margin": 0,
+        "probability": score,
+        "thresholds": {"low": 35, "high": 55, "source": "rule_ensemble"},
+        "limitation": LIMITATIONS,
+        "warning": "Это индекс наблюдаемых сигналов, а не вероятность AI-авторства.",
+    }

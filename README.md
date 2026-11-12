@@ -1,5 +1,18 @@
 # AI Detector
 
+## Rule-based review engine
+
+The production checker uses no trained dataset or authorship classifier. It
+combines fast, deterministic and explainable writing signals (for example,
+repeated formulaic phrasing, unusually uniform sentence rhythm and repeated
+sentences). A result is an **index of review signals**, not a probability that
+AI wrote the text and never proof of authorship.
+
+Texts below 100 words or 600 characters, and list-heavy texts, deliberately
+return "insufficient data". A high review signal requires agreement between
+multiple independent signal groups. The legacy TF-IDF experiments remain in
+the repository only for historical research and are not loaded by the app.
+
 > Система анализа текста для определения признаков использования генеративного искусственного интеллекта.
 
 AI Detector — веб-приложение для анализа учебных текстов и оценки вероятности того, что текст был создан или существенно сгенерирован с помощью AI.

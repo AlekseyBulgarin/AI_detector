@@ -38,7 +38,7 @@ def test_api_check_rejects_non_string_text():
     assert "строкой" in response.get_json()["error"]
 
 
-def test_api_check_returns_service_error_when_model_prediction_fails(monkeypatch):
+def test_api_check_returns_service_error_when_signal_evaluation_fails(monkeypatch):
     def fail_prediction(_text):
         raise RuntimeError("model unavailable")
 
@@ -97,7 +97,6 @@ def test_health_reports_model_contract(monkeypatch):
 def test_repeated_text_reuses_cached_analysis(monkeypatch):
     calls = {"predict": 0, "record": 0}
     monkeypatch.setattr(application, "analysis_cache", OrderedDict())
-    monkeypatch.setattr(application, "find_analysis_by_hash", lambda *_args: None)
 
     def fake_prediction(_text):
         calls["predict"] += 1
